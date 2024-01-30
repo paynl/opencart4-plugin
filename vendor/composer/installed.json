@@ -1,0 +1,105 @@
+[
+    {
+        "name": "paynl/sdk3-mvp",
+        "version": "0.1.2",
+        "version_normalized": "0.1.2.0",
+        "dist": {
+            "type": "zip",
+            "url": "artifacts/sdk3-mvp-master.zip",
+            "shasum": "265b4d84f6eed310e4c9c4a6e613072822a4cac0"
+        },
+        "archive": {
+            "exclude": [
+                "!vendor",
+                "composer.phar"
+            ]
+        },
+        "require": {
+            "ext-curl": "*",
+            "ext-json": "*",
+            "php": "^7.4 || ^8.0"
+        },
+        "require-dev": {
+            "ext-simplexml": "*",
+            "guzzlehttp/guzzle": "^6.3",
+            "humbug/php-scoper": "~0.11",
+            "phpmd/phpmd": "^2.7",
+            "phpstan/phpstan": "1.10.4",
+            "phpunit/phpunit": "^10",
+            "roave/security-advisories": "dev-master",
+            "squizlabs/php_codesniffer": "^3.4",
+            "symfony/var-dumper": "^4.3"
+        },
+        "suggest": {
+            "filp/whoops": "For enhanced exception handling"
+        },
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "PayNL\\Sdk\\": "src/",
+                "PayNL\\GuzzleHttp\\": "build/guzzle/src",
+                "PayNL\\GuzzleHttp\\Promise\\": "build/promises/src",
+                "PayNL\\GuzzleHttp\\Psr7\\": "build/psr7/src"
+            },
+            "files": [
+                "./src/Resources/functions/text.php",
+                "./src/Resources/functions/vat.php",
+                "./build/guzzle/src/functions_include.php",
+                "./build/promises/src/functions_include.php",
+                "./build/psr7/src/functions_include.php"
+            ]
+        },
+        "autoload-dev": {
+            "psr-4": {
+                "Tests\\PayNL\\Sdk\\": "tests",
+                "Tests\\Acceptance\\PayNL\\Sdk\\": "tests/acceptance",
+                "Tests\\Functional\\PayNL\\Sdk\\": "tests/functional",
+                "Tests\\Unit\\PayNL\\Sdk\\": "tests/unit"
+            }
+        },
+        "scripts": {
+            "test": [
+                "@style-check"
+            ],
+            "style-check": [
+                "@phpstan",
+                "@phpmd",
+                "@phpcs"
+            ],
+            "phpstan": [
+                "bin/phpstan analyse"
+            ],
+            "phpmd": [
+                "bin/phpmd src,samples text phpmd.xml"
+            ],
+            "phpcs": [
+                "bin/phpcs"
+            ]
+        },
+        "license": [
+            "proprietary"
+        ],
+        "authors": [
+            {
+                "name": "Ian Sneep",
+                "email": "ian@pay.nl"
+            },
+            {
+                "name": "Wouter Jonker",
+                "email": "wouter@pay.nl"
+            }
+        ],
+        "description": "Software Development Kit for implementing Pay.'s API",
+        "homepage": "https://github.com/paynl/sdk3",
+        "keywords": [
+            "api",
+            "plugins",
+            "rest",
+            "sdk"
+        ],
+        "support": {
+            "email": "support@pay.nl"
+        }
+    }
+]

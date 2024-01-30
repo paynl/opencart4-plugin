@@ -1,0 +1,51 @@
+<fieldset>
+    <p><b>{{ description }}</b></p>
+    <form id="form-paynl">
+        <div class="row">
+        <input type="hidden" name="order_id" value="{{ order_id }}" />
+        <div class="d-inline-block pt-2 pd-2 w-100 text-end">
+            <button type="submit" id="button-confirm" class="btn btn-primary">{{ button_confirm }}</button>
+        </div>
+    </form>
+</fieldset>
+<script type="text/javascript"><!--
+    $('#form-paynl').on('submit', function (e) {
+        e.preventDefault();
+        var element = this;
+        $.ajax({
+            url: 'index.php?route=extension/paynl/payment/paynl.confirm&language={{ language }}',
+            type: 'post',
+            data: $('#form-paynl').serialize(),
+            dataType: 'json',
+            contentType: 'application/x-www-form-urlencoded',
+            cache: false,
+            processData: false,
+            beforeSend: function () {
+                $('#button-confirm').prop('disabled', true).addClass('loading');
+            },
+            complete: function () {
+                $('#button-confirm').prop('disabled', false).removeClass('loading');
+            },
+            success: function (json) {
+                $('.alert-dismissible').remove();
+                $('#form-paynl').find('.is-invalid').removeClass('is-invalid');
+                $('#form-paynl').find('.invalid-feedback').removeClass('d-block');
+                if (json['redirect']) {
+                    location = json['redirect'];
+                }
+                if (json['error']) {
+                    if (json['error']['warning']) {
+                        $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error']['warning'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+                    }
+                    for (key in json['error']) {
+                        $('#input-' + key.replaceAll('_', '-')).addClass('is-invalid').find('.form-control, .form-select, .form-check-input, .form-check-label').addClass('is-invalid');
+                        $('#error-' + key.replaceAll('_', '-')).html(json['error'][key]).addClass('d-block');
+                    }
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+            }
+        });
+    });
+    //--></script>
