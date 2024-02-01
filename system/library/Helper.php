@@ -27,8 +27,9 @@ class PayHelper
      */
     public function getObject()
     {
-        $query = $this->openCart->db->query("SELECT * FROM " . DB_PREFIX . "extension_install WHERE code = 'paynl'");
-        $payModuleVersion = $query->row['version'] ?? '';
+        $json = file_get_contents(DIR_EXTENSION . 'paynl/install.json');
+        $jsonData = json_decode($json, true);
+        $payModuleVersion = $jsonData['version'] ?? '';
         return 'Pay.: ' . $payModuleVersion . ', Opencart: ' . VERSION . ', PHP:' . phpversion();
     }
 
