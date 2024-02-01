@@ -38,30 +38,21 @@
               <div class="row mb-3">
                 <label for="payment_paynl_general_apitoken" class="col-sm-2 col-form-label">{{ text_tokencode }}</label>
                 <div class="col-sm-10">                  
-                  <input type="text" class="form-control" name="payment_paynl_tokencode" value="{{ tokencode }}"/>
-                  {% if error_apitoken %}
-                      <div class="text-danger">{{ error_apitoken }}</div>
-                  {% endif %}              
+                  <input type="text" class="form-control" name="payment_paynl_tokencode" value="{{ tokencode }}"/>             
                 </div>
               </div> 
 
               <div class="row mb-3">
                 <label for="payment_paynl_general_apitoken" class="col-sm-2 col-form-label">{{ text_apitoken }}</label>
                 <div class="col-sm-10">                  
-                  <input type="password" class="form-control" name="payment_paynl_apitoken" value="{{ apitoken }}"/>
-                  {% if error_apitoken %}
-                      <div class="text-danger">{{ error_apitoken }}</div>
-                  {% endif %}              
+                  <input type="password" class="form-control" name="payment_paynl_apitoken" value="{{ apitoken }}"/>             
                 </div>
               </div>   
 
               <div class="row mb-3">
                 <label for="payment_paynl_general_apitoken" class="col-sm-2 col-form-label">{{ text_serviceid }}</label>
                 <div class="col-sm-10">                  
-                  <input type="text" class="form-control" name="payment_paynl_serviceid" value="{{ serviceid }}"/>
-                  {% if error_apitoken %}
-                      <div class="text-danger">{{ error_apitoken }}</div>
-                  {% endif %}              
+                  <input type="text" class="form-control" name="payment_paynl_serviceid" value="{{ serviceid }}"/>            
                 </div>
               </div>    
 

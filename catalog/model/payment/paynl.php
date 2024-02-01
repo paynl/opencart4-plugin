@@ -2,7 +2,7 @@
 
 namespace Opencart\Catalog\Model\Extension\paynl\Payment;
 
-require_once DIR_EXTENSION . 'paynl/system/library/Helper.php';
+require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use Opencart\System\Engine\Model;
 use Opencart\System\Library\Helper;
@@ -48,16 +48,26 @@ class Paynl extends \Opencart\System\Engine\Model
      */
     public function getMethods(array $address = array(), float $total = 0.0): array
     {
-        $payPaymentMethods = $this->helper->getPaymentOptions();
         $option_data = [];
-        foreach ($payPaymentMethods as $key => $method) {
-            $option_data[$method->getId()] = [
-                'code' => $this->code . '.' . $method->getId(),
-                'paymentOptionId' => $method->getId(),
-                'name' => $method->getName(),
-                'description' => $method->getDescription(),
+        try {
+            $payPaymentMethods = $this->helper->getPaymentOptions();
+            foreach ($payPaymentMethods as $key => $method) {
+                $option_data[$method->getId()] = [
+                    'code' => $this->code . '.' . $method->getId(),
+                    'paymentOptionId' => $method->getId(),
+                    'name' => $method->getName(),
+                    'description' => $method->getDescription(),
+                ];
+            }
+        } catch (\Exception $e) {
+            $option_data['generic'] = [
+                'code' => $this->code . '.generic',
+                'paymentOptionId' => 0,
+                'name' => 'Pay.',
+                'description' => 'Pay.',
             ];
         }
+
         $methods_data = array(
             'code' => $this->code,
             'name' => 'Pay.',

@@ -3,7 +3,7 @@
 namespace Opencart\Admin\Controller\Extension\paynl\Payment;
 
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
-require_once DIR_EXTENSION . 'paynl/system/library/Helper.php';
+require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use Opencart\System\Library\PayHelper;
 
@@ -28,7 +28,7 @@ class Paynl extends \Opencart\System\Engine\Controller
      * @return void
      */
     public function index(): void
-    {       
+    {
         $this->load->language($this->route);
 
         $this->document->setTitle($this->language->get('heading_title_' . $this->code));
@@ -69,43 +69,50 @@ class Paynl extends \Opencart\System\Engine\Controller
             if (!$this->user->hasPermission('modify', $this->route)) {
                 $json['error'] = $this->language->get('error_permission');
             }
+
+            $tokencode = $this->request->post['payment_paynl_tokencode'];
+            $apitoken = $this->request->post['payment_paynl_apitoken'];
+            $serviceid = $this->request->post['payment_paynl_serviceid'];
+
+            if (empty($tokencode)) {
+                $json['error'] = $this->language->get('error_tokencode');
+            }
+            if (empty($apitoken)) {
+                $json['error'] = $this->language->get('error_apitoken');
+            }
+            if (empty($serviceid)) {
+                $json['error'] = $this->language->get('error_serviceid');
+            }
+            if (!$json) {
+                if (!$this->helper->validateCredentials($tokencode, $apitoken, $serviceid)) {
+                    $json['error'] = 'Failed to connect with Pay. - Please check your credentials.';
+                }
+            }
+
             if (!$json) {
                 $this->load->model('setting/setting');
                 $store_id = $this->request->get['store_id'] ?? 0;
                 $this->model_setting_setting->editSetting('payment_' . $this->code, $this->request->post, (int) $store_id);
                 $json['success'] = $this->language->get('text_success');
-            } else {
-                $error_keys = $this->getErrorsKeysAndTypes();
-                foreach ($error_keys as $key => $type) {
-                    if (isset($this->error[$key])) {
-                        $json['error'][$key] = $this->error[$key];
-                    }
-                    if (!isset($this->error[$key]) && ($type === 'string')) {
-                        $json['error'][$key] = '';
-                    }
-                    if (!isset($this->error[$key]) && ($type === 'array')) {
-                        $json['error'][$key] = array();
-                    }
-                }
             }
+
             $this->response->addHeader('Content-Type: application/json');
             $this->response->setOutput(json_encode($json));
         }
     }
-    
-    /**  
+
+    /**
      * @return void
      */
     public function install(): void
     {
         if ($this->user->hasPermission('modify', 'extension/payment')) {
-            $this->load->model('extension/paynl/payment/' . $this->code);
-            $mdl = 'model_extension_paynl_payment_' . $this->code;
-            $this->$mdl->install();
+            $this->load->model($this->route);
+            $this->model_extension_paynl_payment_paynl->install();
         }
     }
 
-    /**  
+    /**
      * @return void
      */
     public function uninstall(): void
