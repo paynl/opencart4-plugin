@@ -31,7 +31,7 @@ This plugin provides a wide scale of different payment methods for your OpenCart
 2. Choose extension type *Payments*
 3. Install the *Pay.* Extension
 5. Click Edit
-6. Enter the Token codem API token and Service ID (these can be found in the PAY. Admin Panel --> https://admin.pay.nl/programs/programs)
+6. Enter the Token code, API token and Service ID (these can be found in the PAY. Admin Panel --> https://admin.pay.nl/programs/programs)
 7. Save the settings
 
 #### Update instructions
