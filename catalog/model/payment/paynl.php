@@ -10,9 +10,9 @@ use Opencart\System\Library\PayHelper;
 
 class Paynl extends \Opencart\System\Engine\Model
 {
-    private string $code;
-    private string $route;
-    private PayHelper $helper;
+    private $code;
+    private $route;
+    private $helper;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -60,6 +60,7 @@ class Paynl extends \Opencart\System\Engine\Model
                 ];
             }
         } catch (\Exception $e) {
+            $this->helper->log('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
             $option_data['generic'] = [
                 'code' => $this->code . '.generic',
                 'paymentOptionId' => 0,

@@ -9,10 +9,10 @@ use Opencart\System\Library\PayTransaction;
 
 class Paynl extends \Opencart\System\Engine\Controller
 {
-    private string $code;
-    private string $route;
-    private PayHelper $helper;
-    private PayTransaction $payTransaction;
+    private $code;
+    private $route;
+    private $helper;
+    private $payTransaction;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -47,19 +47,23 @@ class Paynl extends \Opencart\System\Engine\Controller
         $this->load->language($this->route);
         $json = [];
         if (!isset($this->session->data['order_id'])) {
-            $json['error']['warning'] = $this->language->get('error_order');
+            $json['error']['warning'] = $this->language->get('session_error_order');
         }
         if (!isset($this->session->data['payment_method'])) {
-            $json['error']['warning'] = $this->language->get('error_payment_method');
+            $json['error']['warning'] = $this->language->get('session_error_payment_method');
         }
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->request->post['order_id']);
         if (!$json) {
             try {
+                $this->helper->log('Transaction: starting transaction', ['orderId' => $this->request->post['order_id']]);
                 $json['redirect'] = $this->payTransaction->startTransaction($order);
             } catch (\Exception $e) {
+                $this->helper->log('Transaction: start failed', ['orderId' => $this->request->post['order_id'], ' Error' => $e->getMessage()]);
                 $json['error']['warning'] = $this->language->get('error_start_transaction');
             }
+        } else {
+            $this->helper->log('Transaction: cannot start transaction', ['orderId' => $this->request->post['order_id'], ' Json' => json_encode($json)]);
         }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));

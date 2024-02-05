@@ -11,10 +11,10 @@ use PayNL\Sdk\Exception\PayException;
 
 class Exchange extends \Opencart\System\Engine\Controller
 {
-    private string $code;
-    private string $route;
-    private PayHelper $helper;
-    private PayTransaction $payTransaction;
+    private $code;
+    private $route;
+    private $helper;
+    private $payTransaction;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -35,15 +35,17 @@ class Exchange extends \Opencart\System\Engine\Controller
     {
         $transactionId = $_REQUEST['order_id'] ?? null;
         $orderId = $_REQUEST['extra1'] ?? null;
-        $action = $_REQUEST['action'] ?? null;
+        $action = $_REQUEST['action'] ?? null;       
 
         if ($action == 'pending') {
             $message = 'ignoring PENDING';
+            $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
             die("TRUE|" . $message);
         }
 
         try {
             $message = $this->payTransaction->processTransaction($transactionId, $orderId);
+            $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
             die("TRUE|" . $message);
         } catch (PayException $e) {
             $message = "Api error: " . $e->getMessage();
@@ -51,6 +53,7 @@ class Exchange extends \Opencart\System\Engine\Controller
             $message = "Unknown error: " . $e->getMessage();
         }
 
+        $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
         die("FALSE|" . $message);
     }
 }
