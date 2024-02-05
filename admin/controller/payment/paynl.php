@@ -52,7 +52,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
 
         // Settings
-        $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging') ?? 1;
+        $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
 
         $data['header'] = $this->load->controller('common/header');
