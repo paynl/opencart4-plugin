@@ -146,7 +146,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                 }
                 $zipArchive->close();
             } else {
-                $file = DIR_LOGS . '/' . $this->code . '.log';
+                $file = DIR_LOGS . $this->code . '.log';
             }
             if (file_exists($file)) {
                 header('Content-Description: File Transfer');
@@ -157,7 +157,9 @@ class Paynl extends \Opencart\System\Engine\Controller
                 header('Pragma: public');
                 header('Content-Length: ' . filesize($file));
                 readfile($file);
-                unlink(DIR_LOGS . '/logs.zip');
+                if (file_exists(DIR_LOGS . 'logs.zip')) {
+                    unlink(DIR_LOGS . 'logs.zip');
+                }
                 exit;
             }
         }
