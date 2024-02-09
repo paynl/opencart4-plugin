@@ -32,6 +32,9 @@ class Paynl extends \Opencart\System\Engine\Controller
         $this->load->language($this->route);
 
         $this->document->setTitle($this->language->get('heading_title_' . $this->code));
+        $this->document->addStyle('../extension/paynl/admin/view/stylesheet/pay.css');
+        $this->document->addScript('../extension/paynl/admin/view/javascript/jquery-ui/jquery-ui.js');
+        $this->document->addScript('../extension/paynl/admin/view/javascript/pay.js');
 
         $data['breadcrumbs'] = [];
 
@@ -42,6 +45,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['save'] = $this->url->link('extension/paynl/payment/' . $this->code . '|save', 'user_token=' . $this->session->data['user_token']);
         $data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
 
+        // General
         $data['payment_' . $this->code . '_status'] = $this->config->get('payment_' . $this->code . '_status');
         $data['payment_' . $this->code . '_sort_order'] = $this->config->get('payment_' . $this->code . '_sort_order');
 
@@ -49,6 +53,52 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['serviceid'] = $this->config->get('payment_' . $this->code . '_serviceid');
         $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
+
+        // Paymentmethods
+        $gateways = [];   
+        try {           
+            $payPaymentMethods = $this->helper->getPaymentOptions();
+            $sort_order = array();
+            foreach ($payPaymentMethods as $key => $method) {     
+                $activeSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');      
+                $nameSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
+                $descriptionSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
+                $minAmountSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
+                $maxAmountSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+                $countriesSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
+                $sortSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
+                $image = 'https://static.pay.nl/' . $method->getImage();
+
+                $gateways[$method->getId()] = [];
+
+                $gateways[$method->getId()]['id'] = $method->getId();
+                $gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
+                $gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
+                $gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
+                $gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
+                $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
+                $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
+                $gateways[$method->getId()]['countries'] = $countriesSetting;
+                $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;      
+                $gateways[$method->getId()]['image'] = $image;      
+                
+                $sort_order[$method->getId()] = (!empty($sortSetting)) ? $sortSetting : $key;       
+            }              
+            
+            uasort($gateways, function($a,$b){return (int)$a['sort']-(int)$b['sort'];});
+         
+        } catch (\Exception $e) {
+            
+        }     
+
+        $data['pay_paymentmethods'] = $gateways;        
+
+        $this->load->model('localisation/geo_zone');
+        $data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
+     
+        $this->load->model('localisation/country');
+		$data['countries'] =  $this->model_localisation_country->getCountries();
+
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
