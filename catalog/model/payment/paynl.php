@@ -27,7 +27,6 @@ class Paynl extends \Opencart\System\Engine\Model
 
     /**
      * @param array $address
-     * @param float $total
      * @return array $method_data
      */
     public function getMethod($address): array
@@ -43,7 +42,6 @@ class Paynl extends \Opencart\System\Engine\Model
 
     /**
      * @param array $address
-     * @param float $total
      * @return array $method_data
      */
     public function getMethods($address): array
@@ -84,6 +82,9 @@ class Paynl extends \Opencart\System\Engine\Model
         return [];
     }
 
+    /**
+     * @return boolean
+     */
     public function checkPaymentMethod($method)
     {
 
@@ -116,6 +117,9 @@ class Paynl extends \Opencart\System\Engine\Model
         return true;
     }
 
+    /**
+     * @return string
+     */
     public function getGeoZoneId()
     {
         $geozone = '';
@@ -127,6 +131,9 @@ class Paynl extends \Opencart\System\Engine\Model
         return $geozone;
     }
 
+    /**
+     * @return string
+     */
     public function getCountryId()
     {
         $country = '';
