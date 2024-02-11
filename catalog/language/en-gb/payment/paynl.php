@@ -1,4 +1,5 @@
 <?php
 
 // Error
-$_['error_start_transaction'] = 'Could not start transaction.';
+$_['session_error_order'] = 'Session expired for this order.';
+$_['session_error_payment_method'] = 'Session expired for this paymentmethod.';

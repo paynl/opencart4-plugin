@@ -10,10 +10,10 @@ use Opencart\System\Library\PayTransaction;
 
 class Finish extends \Opencart\System\Engine\Controller
 {
-    private string $code;
-    private string $route;
-    private PayHelper $helper;
-    private PayTransaction $payTransaction;
+    private $code;
+    private $route;
+    private $helper;
+    private $payTransaction;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry

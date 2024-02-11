@@ -86,7 +86,7 @@ class PayTransaction
         }
 
         $message = "Status updated to $status";
-        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState, $message, false);
+        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState, $message . ', Pay. orderId: ' . $transactionId, false);
 
         return $message;
     }
@@ -102,6 +102,7 @@ class PayTransaction
         $request->setConfig($this->helper->getConfig());
         $request->setServiceId($this->openCart->config->get('payment_' . $this->code . '_serviceid'));
         $request->setDescription('Order ' . $order_info['order_id']);
+        $request->setReference($order_info['order_id']);        
 
         $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));
         $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));

@@ -9,9 +9,9 @@ use Opencart\System\Library\PayHelper;
 
 class Paynl extends \Opencart\System\Engine\Controller
 {
-    private string $code;
-    private string $route;
-    private PayHelper $helper;
+    private $code;
+    private $route;
+    private $helper;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -42,6 +42,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['save'] = $this->url->link('extension/paynl/payment/' . $this->code . '|save', 'user_token=' . $this->session->data['user_token']);
         $data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
 
+        // General
         $data['payment_' . $this->code . '_status'] = $this->config->get('payment_' . $this->code . '_status');
         $data['payment_' . $this->code . '_sort_order'] = $this->config->get('payment_' . $this->code . '_sort_order');
 
@@ -49,6 +50,10 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['serviceid'] = $this->config->get('payment_' . $this->code . '_serviceid');
         $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
+
+        // Settings
+        $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
+        $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -120,6 +125,43 @@ class Paynl extends \Opencart\System\Engine\Controller
         if ($this->user->hasPermission('modify', 'extension/payment')) {
             $this->load->model($this->route);
             $this->model_extension_paynl_payment_paynl->uninstall();
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function downloadLogs()
+    {
+        if (file_exists(DIR_LOGS)) {
+            if (class_exists('ZipArchive') && is_writable(DIR_LOGS)) {
+                $file = DIR_LOGS . '/logs_opencart4.zip';
+                $zipArchive = new \ZipArchive();
+                $zipArchive->open($file, (\ZipArchive::CREATE | \ZipArchive::OVERWRITE));
+                if (file_exists(DIR_LOGS . 'error.log')) {
+                    $zipArchive->addFile(DIR_LOGS . 'error.log', 'error.log');
+                }
+                if (file_exists(DIR_LOGS . $this->code . '.log')) {
+                    $zipArchive->addFile(DIR_LOGS . $this->code . '.log', $this->code . '.log');
+                }
+                $zipArchive->close();
+            } else {
+                $file = DIR_LOGS . $this->code . '.log';
+            }
+            if (file_exists($file)) {
+                header('Content-Description: File Transfer');
+                header('Content-Type: application/octet-stream');
+                header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+                header('Expires: 0');
+                header('Cache-Control: must-revalidate');
+                header('Pragma: public');
+                header('Content-Length: ' . filesize($file));
+                readfile($file);
+                if (file_exists(DIR_LOGS . 'logs.zip')) {
+                    unlink(DIR_LOGS . 'logs.zip');
+                }
+                exit;
+            }
         }
     }
 }
