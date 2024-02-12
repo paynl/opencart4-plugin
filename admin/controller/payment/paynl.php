@@ -88,7 +88,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             uasort($gateways, function($a,$b){return (int)$a['sort']-(int)$b['sort'];});
          
         } catch (\Exception $e) {
-            
+            $this->helper->log('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
         }     
 
         $data['pay_paymentmethods'] = $gateways;        

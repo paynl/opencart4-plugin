@@ -12,6 +12,7 @@ $_['text_edit'] = 'Edit Pay.';
 // Tabs
 $_['tab_general'] = 'General';
 $_['tab_paymentmethods'] = 'Payment methods';
+$_['tab_settings'] = 'Settings';
 
 // Tab General
 $_['entry_status'] = 'Status';
@@ -28,6 +29,11 @@ $_['text_pm_min'] = 'Minimum amount';
 $_['text_pm_max'] = 'Maximum amount';
 $_['text_pm_countries'] = 'Limit countries';
 $_['text_pm_geozone'] = 'Geozone';
+
+// Tab Settings
+$_['text_logging'] = 'Logging';
+$_['text_logging_tooltip'] = "Log payment processing information";
+$_['text_logging_download'] = "Download logs";
 
 // Error
 $_['error_permission'] = 'Warning: You do not have permission to modify Pay. payment module!';
