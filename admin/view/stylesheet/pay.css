@@ -59,3 +59,10 @@
 .payImage {
     width: auto;
 }
+
+.highlight{
+    height: 75px;
+    background-color: rgba(0, 0, 0, 0.045);
+    width: 100%;
+    margin: 10px 0px;
+}
