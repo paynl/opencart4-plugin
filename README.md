@@ -23,7 +23,7 @@ This plugin provides a wide scale of different payment methods for your OpenCart
 #### Installing
 
 1. Download the latest .zip file (paynl.ocmod.zip) and upload it into *Extensions* > *Installer* > *Upload*
-2. Install the *Pay. Module for Opencart4* Extension
+2. Install the *Pay. Payments for Opencart4* Extension
 
 ##### Setup
 
@@ -46,10 +46,10 @@ This plugin provides a wide scale of different payment methods for your OpenCart
 2. Go to *Extensions* > *Extensions*
 3. Uninstall the *Pay.* Extension
 4. Go to *Extensions* > *Installer*
-5. Uninstall the *Pay. Module for Opencart4* Extension
-6. Delete the *Pay. Module for Opencart4* Extension
+5. Uninstall the *Pay. Payments for Opencart4* Extension
+6. Delete the *Pay. Payments for Opencart4* Extension
 7. Upload the new .zip file  (paynl.ocmod.zip)
-8. Install the *Pay. Module for Opencart4* Extension
+8. Install the *Pay. Payments for Opencart4* Extension
 
 # Support
 https://www.pay.nl

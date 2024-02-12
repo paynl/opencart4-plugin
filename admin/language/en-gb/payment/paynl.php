@@ -1,10 +1,10 @@
 <?php
 // Heading
 $_['heading_title'] = 'Pay.';
-$_['heading_title_paynl'] = 'Pay. Module for Opencart4';
+$_['heading_title_paynl'] = 'Pay. Payments for Opencart4';
 
 // Text
-$_['text_description'] = 'Pay. Module for Opencart4';
+$_['text_description'] = 'Pay. Payments for Opencart4';
 $_['text_extension'] = 'Extensions';
 $_['text_success'] = 'Success: You have updated the Pay. Module!';
 $_['text_edit'] = 'Edit Pay.';

@@ -7,6 +7,7 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use PayNL\Sdk\Config\Config;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
+use \Opencart\System\Library\Log;
 
 class PayHelper
 {
@@ -73,10 +74,30 @@ class PayHelper
             $config->setPassword($apitoken);
             $request = new ServiceGetConfigRequest($serviceid);
             $request->setConfig($config);
-            $service = $request->start();
+            $request->start();
         } catch (\Exception $e) {
+            $this->log('Credentials: validation failed', ['error' => $e->getMessage()]);
             return false;
         }
         return true;
+    }
+
+    /**
+     * @param string $message
+     * @param array $data
+     * @return void
+     */
+    public function log(string $message = '', array $data = [])
+    {
+        $logging_enabled = $this->openCart->config->get('payment_' . $this->code . '_logging') ?? 1;
+        if ($logging_enabled !== '0') {
+            if (!empty($data)) {
+                foreach ($data as $key => $dataText) {
+                    $message .= ', ' . $key . ': ' . $dataText;
+                }
+            }
+            $log = new Log($this->code . '.log');
+            $log->write($message);
+        }
     }
 }
