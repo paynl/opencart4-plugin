@@ -31,7 +31,7 @@ class PayPaymentMethods
     /**
      * @param object $openCart
      */
-    public function __construct($openCart)
+    public function __construct($openCart) // phpcs:ignore
     {
         $this->openCart = $openCart;
         $this->helper = new PayHelper($openCart);
@@ -96,5 +96,4 @@ class PayPaymentMethods
         }
         return false;
     }
-
 }

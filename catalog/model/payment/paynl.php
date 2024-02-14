@@ -30,9 +30,9 @@ class Paynl extends \Opencart\System\Engine\Model
 
     /**
      * @param array $address
-     * @return array $method_data
+     * @return array
      */
-    public function getMethod($address): array
+    public function getMethod(array $address): array
     {
         $method_data = [
             'code' => $this->code,
@@ -45,9 +45,9 @@ class Paynl extends \Opencart\System\Engine\Model
 
     /**
      * @param array $address
-     * @return array $method_data
+     * @return array
      */
-    public function getMethods($address): array
+    public function getMethods(array $address): array
     {
         $option_data = [];
         try {
@@ -72,7 +72,9 @@ class Paynl extends \Opencart\System\Engine\Model
                     ];
                 }
             }
-            uasort($option_data, function ($a, $b) {return (int) $a['sort'] - (int) $b['sort'];});
+            uasort($option_data, function ($a, $b) {
+                return (int) $a['sort'] - (int) $b['sort'];
+            });
         } catch (\Exception $e) {
             $this->helper->log('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
         }
@@ -91,6 +93,7 @@ class Paynl extends \Opencart\System\Engine\Model
     }
 
     /**
+     * @param string $method
      * @return boolean
      */
     public function checkPaymentMethod($method)

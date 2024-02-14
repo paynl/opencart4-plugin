@@ -1,20 +1,18 @@
 <?php
+
 namespace Opencart\Catalog\Controller\Extension\paynl\Payment;
 
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
-
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayTransaction;
-
 class Paynl extends \Opencart\System\Engine\Controller
 {
     private $code;
     private $route;
     private $helper;
     private $payTransaction;
-
-    /**
+/**
      * @param \Opencart\System\Engine\Registry $registry
      */
     public function __construct(\Opencart\System\Engine\Registry $registry)
@@ -34,15 +32,15 @@ class Paynl extends \Opencart\System\Engine\Controller
         $this->load->language($this->route);
         $data['logged'] = $this->customer->isLogged();
         $data['language'] = $this->config->get('config_language');
-        $data['order_id'] = (int) $this->session->data['order_id'];        
+        $data['order_id'] = (int) $this->session->data['order_id'];
         $data['coupon'] = $this->session->data['coupon'];
         $data['voucher'] = $this->session->data['voucher'];
         $data['description'] = $this->session->data['payment_method']['description'];
-        $data['issuers'] = $this->session->data['payment_method']['issuers'];    
-        $data['showIssuers'] = ($this->session->data['payment_method']['showIssuers'] == '1');        
-        $data['showDOB'] = $this->session->data['payment_method']['showDOB'];        
-        $data['showCOC'] = $this->session->data['payment_method']['showCOC'];        
-        $data['showVAT'] = $this->session->data['payment_method']['showVAT'];        
+        $data['issuers'] = $this->session->data['payment_method']['issuers'];
+        $data['showIssuers'] = ($this->session->data['payment_method']['showIssuers'] == '1');
+        $data['showDOB'] = $this->session->data['payment_method']['showDOB'];
+        $data['showCOC'] = $this->session->data['payment_method']['showCOC'];
+        $data['showVAT'] = $this->session->data['payment_method']['showVAT'];
         return $this->load->view($this->route, $data);
     }
 
@@ -61,7 +59,6 @@ class Paynl extends \Opencart\System\Engine\Controller
         }
         $this->load->model('checkout/order');
         $order = $this->model_checkout_order->getOrder($this->request->post['order_id']);
-        
         if (!$json) {
             try {
                 $options = [

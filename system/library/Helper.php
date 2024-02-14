@@ -7,7 +7,7 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use PayNL\Sdk\Config\Config;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
-use \Opencart\System\Library\Log;
+use Opencart\System\Library\Log;
 
 class PayHelper
 {
@@ -18,7 +18,7 @@ class PayHelper
     /**
      * @param object $openCart
      */
-    public function __construct($openCart)
+    public function __construct($openCart) // phpcs:ignore
     {
         $this->openCart = $openCart;
     }
@@ -54,6 +54,9 @@ class PayHelper
     }
 
     /**
+     * @param string $tokencode
+     * @param string $apitoken
+     * @param string $serviceid
      * @return boolean
      */
     public function validateCredentials($tokencode, $apitoken, $serviceid)

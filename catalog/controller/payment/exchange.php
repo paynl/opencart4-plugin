@@ -35,7 +35,7 @@ class Exchange extends \Opencart\System\Engine\Controller
     {
         $transactionId = $_REQUEST['order_id'] ?? null;
         $orderId = $_REQUEST['extra1'] ?? null;
-        $action = $_REQUEST['action'] ?? null;       
+        $action = $_REQUEST['action'] ?? null;
 
         if ($action == 'pending') {
             $message = 'ignoring PENDING';
