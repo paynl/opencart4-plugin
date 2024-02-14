@@ -6,12 +6,14 @@ require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use Opencart\System\Library\PayHelper;
+use Opencart\System\Library\PayPaymentMethods;
 
 class Paynl extends \Opencart\System\Engine\Controller
 {
     private $code;
     private $route;
     private $helper;
+    private $paymentMethods;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -19,6 +21,7 @@ class Paynl extends \Opencart\System\Engine\Controller
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
         $this->helper = new PayHelper($this);
+        $this->paymentMethods = new PayPaymentMethods($this);
         $this->code = $this->helper->code;
         $this->route = $this->helper->route;
         parent::__construct($registry);
@@ -55,18 +58,18 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
 
         // Paymentmethods
-        $gateways = [];   
-        try {           
-            $payPaymentMethods = $this->helper->getPaymentOptions();
+        $gateways = [];
+        try {
+            $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
             $sort_order = array();
-            foreach ($payPaymentMethods as $key => $method) {     
-                $activeSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');      
-                $nameSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
-                $descriptionSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
-                $minAmountSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
-                $maxAmountSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
-                $countriesSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
-                $sortSetting =  $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
+            foreach ($payPaymentMethods as $key => $method) {
+                $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
+                $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
+                $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
+                $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
+                $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+                $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
+                $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
                 $image = 'https://static.pay.nl/' . $method->getImage();
 
                 $gateways[$method->getId()] = [];
@@ -79,26 +82,38 @@ class Paynl extends \Opencart\System\Engine\Controller
                 $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
                 $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
                 $gateways[$method->getId()]['countries'] = $countriesSetting;
-                $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;      
-                $gateways[$method->getId()]['image'] = $image;      
-                
-                $sort_order[$method->getId()] = (!empty($sortSetting)) ? $sortSetting : $key;       
-            }              
-            
-            uasort($gateways, function($a,$b){return (int)$a['sort']-(int)$b['sort'];});
-         
+                $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
+                $gateways[$method->getId()]['image'] = $image;
+
+                if ($this->paymentMethods->showIssuersField($method->getId())) {
+                    $gateways[$method->getId()]['showIssuersField'] = true;
+                    $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
+                }
+
+                if ($this->paymentMethods->showBusinessFields($method->getId())) {
+                    $gateways[$method->getId()]['showBusinessFields'] = true;
+                    $gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
+                    $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
+                    $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
+                }
+
+                $sort_order[$method->getId()] = (!empty($sortSetting)) ? $sortSetting : $key;
+            }
+
+            uasort($gateways, function ($a, $b) {
+                return (int) $a['sort'] - (int) $b['sort'];
+            });
         } catch (\Exception $e) {
             $this->helper->log('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
-        }     
+        }
 
-        $data['pay_paymentmethods'] = $gateways;        
+        $data['pay_paymentmethods'] = $gateways;
 
         $this->load->model('localisation/geo_zone');
         $data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
-     
-        $this->load->model('localisation/country');
-		$data['countries'] =  $this->model_localisation_country->getCountries();
 
+        $this->load->model('localisation/country');
+        $data['countries'] = $this->model_localisation_country->getCountries();
 
         // Settings
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');

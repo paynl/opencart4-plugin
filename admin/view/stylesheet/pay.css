@@ -33,6 +33,7 @@
 
 .payPaymentMethod.open .payPaymentMethodDetails {
     max-height: 999px;
+    overflow:visible;
 }
 
 .payPaymentTitle {
@@ -60,9 +61,50 @@
     width: auto;
 }
 
-.highlight{
+.highlight {
     height: 75px;
     background-color: rgba(0, 0, 0, 0.045);
     width: 100%;
     margin: 10px 0px;
+}
+
+
+.labelText {
+    position: relative;
+    margin-right: 15px;
+}
+
+.payTooltip {
+    position: absolute;
+    right: -25px;
+}
+
+[data-tooltip]::before {
+    font-family: 'FontAwesome', sans-serif;
+    content: "\f05a";
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    z-index: 999;
+    bottom: 100%;
+    margin-bottom: 10px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s;
+    background: #000;
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+    left: 0;
+    width: max-content;
+    max-width: 350px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+[data-tooltip]:hover::after {
+    visibility: visible;
+    opacity: 1;
 }

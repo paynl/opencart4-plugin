@@ -86,7 +86,7 @@ class PayTransaction
         }
 
         $message = "Status updated to $status";
-        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState, $message . ', Pay. orderId: ' . $transactionId, false);
+        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState, $message . ', Pay. orderId: (' . $transactionId . '), Pay. status: ('.$transaction->getStatus()['action'].')', true);
 
         return $message;
     }
@@ -96,7 +96,7 @@ class PayTransaction
      * @return string
      * @throws Exception
      */
-    public function startTransaction($order_info)
+    public function startTransaction($order_info, $options)
     {
         $request = new TransactionCreateRequest();
         $request->setConfig($this->helper->getConfig());
@@ -110,6 +110,7 @@ class PayTransaction
         $request->setAmount($order_info['total']);
         $request->setCurrency($order_info['currency_code']);
         $request->setPaymentMethodId($this->openCart->session->data['payment_method']['paymentOptionId']);
+        $request->setIssuerId($options['issuer']);
         $request->setTestmode(($this->openCart->config->get('payment_' . $this->code . '_testmode') == 1));
 
         $customer = new \PayNL\Sdk\Model\Customer();
@@ -138,11 +139,13 @@ class PayTransaction
         if (!empty($address)) {
             $company = new \PayNL\Sdk\Model\Company();
             $company->setName($address['company']);
-            $company->setCoc('');
-            $company->setVat('');
+            $company->setCoc($options['coc']);
+            $company->setVat($options['vat']);
             $company->setCountryCode($address['iso_code_2'] ?? '');
 
             $customer->setCompany($company);
+            $customer->setBirthDate($options['dob']);
+
             $request->setCustomer($customer);
 
             $arrStreet = paynl_split_address(trim(($address['address_1'] ?? '') . ' ' . ($address['address_2'] ?? '')));
@@ -168,17 +171,40 @@ class PayTransaction
 
         $payProducts = new \PayNL\Sdk\Model\Products();
         $products = $this->openCart->cart->getProducts();
+        $totalPrice = 0;
 
         foreach ($products as $key => $product) {
             $tax = $this->openCart->tax->getTax($product['price'], $product['tax_class_id']);
+            $totalPrice += $product['total'];
             $payProducts->addProduct(new Product($product['product_id'], $product['name'], $product['total'], $order_info['currency_code'], Product::TYPE_ARTICLE, $product['quantity'], paynl_determine_vat_class_by_percentage($tax)));
         }
 
         if (!empty($order_info['shipping_method'])) {
             $shipping = $order_info['shipping_method'];
             $tax = $this->openCart->tax->getTax($shipping['cost'], $shipping['tax_class_id']);
-            $payProducts->addProduct(new Product(null, $shipping['name'], $shipping['cost'], $order_info['currency_code'], Product::TYPE_SHIPPING, 1, paynl_determine_vat_class_by_percentage($tax)));
+            $payProducts->addProduct(new Product('Shipping', $shipping['name'], $shipping['cost'], $order_info['currency_code'], Product::TYPE_SHIPPING, 1, paynl_determine_vat_class_by_percentage($tax)));
         }
+
+        if ($options['coupon']) {
+            $discount = 0;
+			$this->openCart->load->model('marketing/coupon');
+			$coupon_info = $this->openCart->model_marketing_coupon->getCoupon($options['coupon']);
+            if($coupon_info['type'] == 'P'){
+                $discount += ($totalPrice / 100) * $coupon_info['discount'];
+            } else if($coupon_info['type'] == 'F'){
+                $discount += $coupon_info['discount'];
+            }
+            if (!empty($order_info['shipping_method']) && $coupon_info['shipping'] == 1) {
+                $discount += $order_info['shipping_method']['cost'];
+            }
+            $payProducts->addProduct(new Product($options['coupon'], $coupon_info['name'], -$discount, $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
+		}
+
+        if ($options['voucher']) {
+            $this->openCart->load->model('checkout/voucher');
+            $voucher_info = $this->openCart->model_checkout_voucher->getVoucher($options['voucher']);
+            $payProducts->addProduct(new Product('voucher', $voucher_info['code'], -$voucher_info['amount'], $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));           
+        }       
 
         $order->setProducts($payProducts);
 
