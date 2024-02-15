@@ -86,7 +86,7 @@ class PayTransaction
         }
 
         $message = "Status updated to $status";
-        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState, $message . ', Pay. orderId: (' . $transactionId . '), Pay. status: (' . $transaction->getStatus()['action'] . ')', true); // phpcs:ignore
+        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState);
 
         return $message;
     }

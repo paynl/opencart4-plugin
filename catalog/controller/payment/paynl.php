@@ -6,6 +6,7 @@ require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayTransaction;
+
 class Paynl extends \Opencart\System\Engine\Controller
 {
     private $code;
@@ -13,8 +14,8 @@ class Paynl extends \Opencart\System\Engine\Controller
     private $helper;
     private $payTransaction;
 /**
-     * @param \Opencart\System\Engine\Registry $registry
-     */
+ * @param \Opencart\System\Engine\Registry $registry
+ */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
         $this->helper = new PayHelper($this);
@@ -33,14 +34,14 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['logged'] = $this->customer->isLogged();
         $data['language'] = $this->config->get('config_language');
         $data['order_id'] = (int) $this->session->data['order_id'];
-        $data['coupon'] = $this->session->data['coupon'];
-        $data['voucher'] = $this->session->data['voucher'];
-        $data['description'] = $this->session->data['payment_method']['description'];
-        $data['issuers'] = $this->session->data['payment_method']['issuers'];
-        $data['showIssuers'] = ($this->session->data['payment_method']['showIssuers'] == '1');
-        $data['showDOB'] = $this->session->data['payment_method']['showDOB'];
-        $data['showCOC'] = $this->session->data['payment_method']['showCOC'];
-        $data['showVAT'] = $this->session->data['payment_method']['showVAT'];
+        $data['coupon'] = $this->session->data['coupon'] ?? '';
+        $data['voucher'] = $this->session->data['voucher'] ?? '';
+        $data['description'] = $this->session->data['payment_method']['description'] ?? '';
+        $data['issuers'] = $this->session->data['payment_method']['issuers'] ?? [];
+        $data['showIssuers'] = $this->session->data['payment_method']['showIssuers'] ?? 0;
+        $data['showDOB'] = $this->session->data['payment_method']['showDOB'] ?? 0;
+        $data['showCOC'] = $this->session->data['payment_method']['showCOC'] ?? 0;
+        $data['showVAT'] = $this->session->data['payment_method']['showVAT'] ?? 0;
         return $this->load->view($this->route, $data);
     }
 
