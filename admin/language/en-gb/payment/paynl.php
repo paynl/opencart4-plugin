@@ -57,3 +57,24 @@ $_['error_tokencode'] = 'Token code is required';
 $_['error_apitoken'] = 'API token is required.';
 $_['error_serviceid'] = 'Sales location is required';
 $_['error_payment_methods'] = 'Cannot load payment methods, please check your credentials';
+
+// Order page
+$_['text_order_orderid'] = 'Pay. Order id';
+$_['text_order_status'] = 'Pay. Status';
+$_['text_order_pm'] = 'Payment Method';
+$_['text_order_amount_cart'] = 'Amount (Cart)';
+$_['text_order_amount_pay'] = 'Amount (Pay.)';
+$_['text_order_amount_refunded'] = 'Refunded (Pay.)';
+$_['text_order_amount_captured'] = 'captured';
+
+$_['text_refund'] = 'Refund';
+$_['text_refund_desc'] = 'Amount to refund';
+$_['text_refund_confirm'] = 'Are you sure want to refund this amount: %amount% ?';
+$_['text_refund_success'] = 'Pay. refunded %amount% successfully!';
+$_['text_refund_error'] = 'Pay. couldn\'t refund, please try again later.';
+
+$_['text_capture'] = 'Capture';
+$_['text_capture_desc'] = 'Amount to capture';
+$_['text_capture_confirm'] = 'Are you sure want to capture this amount: %amount% ?';
+$_['text_capture_success'] = 'Pay. captured %amount% successfully!';
+$_['text_capture_error'] = 'Pay. couldn\'t capture, please try again later.';
