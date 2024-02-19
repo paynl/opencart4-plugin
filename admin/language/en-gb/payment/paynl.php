@@ -11,6 +11,7 @@ $_['text_edit'] = 'Edit Pay.';
 
 // Tabs
 $_['tab_general'] = 'General';
+$_['tab_paymentmethods'] = 'Payment methods';
 $_['tab_settings'] = 'Settings';
 
 // Tab General
@@ -20,6 +21,14 @@ $_['text_apitoken'] = 'API token';
 $_['text_serviceid'] = 'Sales location';
 $_['text_tokencode'] = 'Token code';
 $_['text_testmode'] = 'Testmodus';
+
+// Tab Payment methods
+$_['text_pm_name'] = 'Name';
+$_['text_pm_desc'] = 'Description';
+$_['text_pm_min'] = 'Minimum amount';
+$_['text_pm_max'] = 'Maximum amount';
+$_['text_pm_countries'] = 'Limit countries';
+$_['text_pm_geozone'] = 'Geozone';
 
 // Tab Settings
 $_['text_logging'] = 'Logging';
@@ -31,3 +40,4 @@ $_['error_permission'] = 'Warning: You do not have permission to modify Pay. pay
 $_['error_tokencode'] = 'Token code is required';
 $_['error_apitoken'] = 'API token is required.';
 $_['error_serviceid'] = 'Sales location is required';
+$_['error_payment_methods'] = 'Cannot load payment methods, please check your credentials';

@@ -21,6 +21,7 @@
         <form id="form-payment" action="{{ save }}" method="post" data-oc-toggle="ajax">
           <ul class="nav nav-tabs" id="tabs">
               <li class="nav-item active"><a href="#tab-general" data-bs-toggle="tab" class="nav-link active">{{ tab_general }}</a></li>
+              <li class="nav-item"><a href="#tab-paymentmethods" data-bs-toggle="tab" class="nav-link">{{ tab_paymentmethods }}</a></li>            
               <li class="nav-item"><a href="#tab-settings" data-bs-toggle="tab" class="nav-link">{{ tab_settings }}</a></li>              
           </ul>
           <div class="tab-content">
@@ -57,7 +58,7 @@
                 </div>
               </div>    
 
-               <div class="row mb-3">
+              <div class="row mb-3">
                 <label for="payment_paynl_general_testmode" class="col-sm-2 col-form-label">{{ text_testmode }}</label>
                 <div class="col-sm-10">
                   <div class="form-check form-switch form-switch-lg">
@@ -76,6 +77,93 @@
 
             </div>    
 
+            {# Paymentmethods #}
+            <div id="tab-paymentmethods" class="tab-pane">     
+            <ul id="sortable_paymentmethods" class="list-group ui-sortable" style="list-style: none;"> 
+              {% for id, paymentmethod in pay_paymentmethods %}  
+                  <li id="payPaymentmethod_{{ id }}" class="payPaymentMethod clickable">
+                    
+                    <input type="hidden" value="{{ id }}" name="payment_paynl_paymentmethod_{{ id }}_id" />
+                    <input type="hidden" value="{{ paymentmethod.sort|e }}" name="payment_paynl_paymentmethod_{{ id }}_sort" class="paymentMethodSort"/>
+    
+                    <span class="row mb-3 payPaymentMethodSummery clickable">
+                      <span class="col-sm-1">
+                        <i class="sortHandle fa-solid fa-reorder" style="transform: scale(1.5); padding: 12px 15px;"></i>
+                      </span>
+                      <span class="col-sm-1">
+                        <span class="form-check form-switch form-switch-lg">
+                          <input type="hidden" name="payment_paynl_paymentmethod_{{ id }}_active" value="0"/>
+                          <input type="checkbox" name="payment_paynl_paymentmethod_{{ id }}_active" value="1" id="input-status" class="form-check-input"{% if paymentmethod.active|e %} checked{% endif %}/>
+                        </span>
+                      </span>
+                      <span class="col-sm-1 clickable payImage">
+                        <img src="{{ paymentmethod.image|e }}" class="payPaymentMethodImage clickable"/>
+                      </span>
+                      <span class="col-sm-9 clickable openPaymentDetails">
+                          <h4 class="list-group-item-heading payPaymentTitle clickable">{{ paymentmethod.name|e }}</h4>
+                          <p class="list-group-item-text payPaymentSubTitle clickable">{{ paymentmethod.descriptionShort|e }}</p>
+                      </span>
+                    </span> 
+
+                    <span class="payPaymentMethodDetails">
+                      <div class="row mb-3">
+                        <label for="payment_paynl_paymentmethod_{{ id }}_name" class="col-sm-2 col-form-label">{{ text_pm_name }}</label>
+                        <div class="col-sm-10">                  
+                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_name" value="{{ paymentmethod.name|e }}"/>            
+                        </div>
+                      </div>   
+                      <div class="row mb-3">
+                        <label for="payment_paynl_paymentmethod_{{ id }}_description" class="col-sm-2 col-form-label">{{ text_pm_desc }}</label>
+                        <div class="col-sm-10">                  
+                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description" value="{{ paymentmethod.description|e }}"/>            
+                        </div>
+                      </div> 
+                      <div class="row mb-3">
+                        <label for="payment_paynl_paymentmethod_{{ id }}_minamount" class="col-sm-2 col-form-label">{{ text_pm_min }}</label>
+                        <div class="col-sm-10">                  
+                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_minamount" value="{{ paymentmethod.minamount|e }}"/>            
+                        </div>
+                      </div> 
+                      <div class="row mb-3">
+                        <label for="payment_paynl_paymentmethod_{{ id }}_maxamount" class="col-sm-2 col-form-label">{{ text_pm_max }}</label>
+                        <div class="col-sm-10">                  
+                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_maxamount" value="{{ paymentmethod.maxamount|e }}"/>            
+                        </div>
+                      </div>   
+                      <div class="form-group group-id row mb-3">
+                        <label class="col-sm-2 col-form-label" for="payment_paynl_paymentmethod_{{ id }}_countries">{{ text_pm_countries }}</label>
+                        <div class="col-sm-10">
+                            <div class="input-group">
+                                <select name="payment_paynl_paymentmethod_{{ id }}_countries[]" id="payment_paynl_paymentmethod_{{ id }}_countries" class="form-select" multiple>
+                                    {% for country in countries %}
+                                        <option value="{{ country['country_id'] }}" {% if country['country_id'] in paymentmethod.countries|e %} selected {% endif %}>{{ country['name'] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                      </div>                
+                      <div class="form-group group-id row mb-3">
+                        <label class="col-sm-2 col-form-label" for="payment_paynl_paymentmethod_{{ id }}_geozone">{{ text_pm_geozone }}</label>
+                        <div class="col-sm-10">
+                            <div class="input-group">
+                                <select name="payment_paynl_paymentmethod_{{ id }}_geozone" id="payment_paynl_paymentmethod_{{ id }}_geozone" class="form-select">
+                                    <option value="0">{{ text_all_zones }}</option>
+                                    {% for geo_zone in geo_zones %}
+                                        <option value="{{ geo_zone['geo_zone_id'] }}"{% if geo_zone['geo_zone_id'] == paymentmethod.geozone|e %} selected {% endif %}>{{ geo_zone['name'] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                      </div>                                       
+                    </span>                  
+                  </li>                
+              {% else %}
+                  <li><em>{{ error_payment_methods }}</em></li>
+              {% endfor %}
+
+            </div>            
+
+            {# Settings #}
             <div id="tab-settings" class="tab-pane">      
 
               <div class="row mb-3">

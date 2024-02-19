@@ -1,0 +1,68 @@
+.payPaymentMethod {
+    border-bottom: 1px solid #ededed;
+    position: relative;
+    padding-top: 10px;
+    background-color: #ffffff;
+}
+
+.payPaymentMethod:after {
+    font-family: 'FontAwesome', sans-serif;
+    content: "\f078";
+    font-size: 18px;
+    position: absolute;
+    right: 15px;
+    top: 20px;
+    font-weight: 100;
+    cursor: pointer;
+    transition-delay: 0.1s;
+    transition-duration: 0.3s;
+    transition-property: transform;
+}
+
+.payPaymentMethod.open:after {
+    transform: scaleY(-1);
+}
+
+.payPaymentMethodDetails {
+    max-height: 0;
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: block;
+}
+
+.payPaymentMethod.open .payPaymentMethodDetails {
+    max-height: 999px;
+}
+
+.payPaymentTitle {
+    font-size: 15px;
+}
+
+.payPaymentSubTitle {
+    height: 17px;
+    font-size: 12px;
+    overflow: hidden;
+}
+
+.payPaymentMethodSummery {
+    margin-top: 10px !important;
+    margin-bottom: 5px !important;
+}
+
+.payPaymentMethodImage {
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+}
+
+.payImage {
+    width: auto;
+}
+
+.highlight{
+    height: 75px;
+    background-color: rgba(0, 0, 0, 0.045);
+    width: 100%;
+    margin: 10px 0px;
+}
