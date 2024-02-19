@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @param $className
+ * @param string $className
+ * @return void
  */
 function payHelperAutoloader($className)
 {

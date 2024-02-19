@@ -7,7 +7,7 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use PayNL\Sdk\Config\Config;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
-use \Opencart\System\Library\Log;
+use Opencart\System\Library\Log;
 
 class PayHelper
 {
@@ -18,7 +18,7 @@ class PayHelper
     /**
      * @param object $openCart
      */
-    public function __construct($openCart)
+    public function __construct($openCart) // phpcs:ignore
     {
         $this->openCart = $openCart;
     }
@@ -30,8 +30,15 @@ class PayHelper
     {
         $json = file_get_contents(DIR_EXTENSION . 'paynl/install.json');
         $jsonData = json_decode($json, true);
-        $payModuleVersion = $jsonData['version'] ?? '';
-        return 'Pay.: ' . $payModuleVersion . ', Opencart: ' . VERSION . ', PHP:' . phpversion();
+
+        $object_string = 'opencart 4 ';
+        $object_string .= $jsonData['version'] ?? '-';
+        $object_string .= ' | ';
+        $object_string .= VERSION ?? '-';
+        $object_string .= ' | ';
+        $object_string .= substr(phpversion(), 0, 3);
+
+        return $object_string;
     }
 
     /**
@@ -47,23 +54,9 @@ class PayHelper
     }
 
     /**
-     * @return array
-     * @throws Exception
-     */
-    public function getPaymentOptions()
-    {
-        $config = $this->getConfig();
-        $request = new ServiceGetConfigRequest($this->openCart->config->get('payment_' . $this->code . '_serviceid'));
-        $request->setConfig($config);
-        $service = $request->start();
-        $paymentMethodsFromPay = [];
-        foreach ($service->getPaymentMethods() as $method) {
-            $paymentMethodsFromPay[$method->getId()] = $method;
-        }
-        return $paymentMethodsFromPay;
-    }
-
-    /**
+     * @param string $tokencode
+     * @param string $apitoken
+     * @param string $serviceid
      * @return boolean
      */
     public function validateCredentials($tokencode, $apitoken, $serviceid)

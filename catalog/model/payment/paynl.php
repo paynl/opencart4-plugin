@@ -7,12 +7,14 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 use Opencart\System\Engine\Model;
 use Opencart\System\Library\Helper;
 use Opencart\System\Library\PayHelper;
+use Opencart\System\Library\PayPaymentMethods;
 
 class Paynl extends \Opencart\System\Engine\Model
 {
     private $code;
     private $route;
     private $helper;
+    private $paymentMethods;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -20,6 +22,7 @@ class Paynl extends \Opencart\System\Engine\Model
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
         $this->helper = new PayHelper($this);
+        $this->paymentMethods = new PayPaymentMethods($this);
         $this->code = $this->helper->code;
         $this->route = $this->helper->route;
         parent::__construct($registry);
@@ -27,9 +30,9 @@ class Paynl extends \Opencart\System\Engine\Model
 
     /**
      * @param array $address
-     * @return array $method_data
+     * @return array
      */
-    public function getMethod($address): array
+    public function getMethod(array $address): array
     {
         $method_data = [
             'code' => $this->code,
@@ -42,13 +45,13 @@ class Paynl extends \Opencart\System\Engine\Model
 
     /**
      * @param array $address
-     * @return array $method_data
+     * @return array
      */
-    public function getMethods($address): array
+    public function getMethods(array $address): array
     {
         $option_data = [];
         try {
-            $payPaymentMethods = $this->helper->getPaymentOptions();
+            $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
             foreach ($payPaymentMethods as $key => $method) {
                 if ($this->checkPaymentMethod($method)) {
                     $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
@@ -61,10 +64,17 @@ class Paynl extends \Opencart\System\Engine\Model
                         'name' => (!empty($nameSetting)) ? $nameSetting : $method->getName(),
                         'description' => (!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription(),
                         'sort' => (!empty($sortSetting)) ? $sortSetting : $key,
+                        'issuers' => $method->getOptions() ?? null,
+                        'showIssuers' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers'),
+                        'showDOB' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob'),
+                        'showCOC' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc'),
+                        'showVAT' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat'),
                     ];
                 }
             }
-            uasort($option_data, function ($a, $b) {return (int) $a['sort'] - (int) $b['sort'];});
+            uasort($option_data, function ($a, $b) {
+                return (int) $a['sort'] - (int) $b['sort'];
+            });
         } catch (\Exception $e) {
             $this->helper->log('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
         }
@@ -72,8 +82,8 @@ class Paynl extends \Opencart\System\Engine\Model
         if (!empty($option_data)) {
             $methods_data = array(
                 'code' => $this->code,
-                'name' => 'Pay.',
-                'title' => "Pay.",
+                'name' => 'Pay. Payments',
+                'title' => "Pay. Payments",
                 'option' => $option_data,
                 'sort_order' => $this->config->get('payment_' . $this->code . '_sort_order'),
             );
@@ -83,6 +93,7 @@ class Paynl extends \Opencart\System\Engine\Model
     }
 
     /**
+     * @param string $method
      * @return boolean
      */
     public function checkPaymentMethod($method)

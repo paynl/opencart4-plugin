@@ -9,7 +9,6 @@ class Paynl extends \Opencart\System\Engine\Model
      */
     public function install(): void
     {
-
     }
 
     /**
@@ -17,6 +16,5 @@ class Paynl extends \Opencart\System\Engine\Model
      */
     public function uninstall(): void
     {
-
     }
 }
