@@ -8,7 +8,9 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 use Opencart\System\Library\PayHelper;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Product;
+use PayNL\Sdk\Model\Request\TransactionCaptureRequest;
 use PayNL\Sdk\Model\Request\TransactionCreateRequest;
+use PayNL\Sdk\Model\Request\TransactionRefundRequest;
 use PayNL\Sdk\Model\Request\TransactionStatusRequest;
 
 class PayTransaction
@@ -102,7 +104,7 @@ class PayTransaction
         $request->setConfig($this->helper->getConfig());
         $request->setServiceId($this->openCart->config->get('payment_' . $this->code . '_serviceid'));
         $request->setDescription('Order ' . $order_info['order_id']);
-        $request->setReference($order_info['order_id']);        
+        $request->setReference($order_info['order_id']);
 
         $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));
         $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
@@ -197,6 +199,67 @@ class PayTransaction
             throw new \Exception($e->getMessage(), $e->getCode());
         }
 
+        $this->addTransaction($order_info['order_id'], $transaction->getOrderId(), $order_info['total']);
         return $transaction->getPaymentUrl();
+    }
+
+    /**
+     * @param string $order_id
+     * @param string $transaction_id
+     * @param float $amount
+     *
+     */
+    public function addTransaction($order_id, $transaction_id, $amount)
+    {
+        $query = "INSERT INTO `" . DB_PREFIX . "pay_transactions`(`order_id`, `transaction_id`, `amount`) VALUES ('" . $order_id . "','" . $transaction_id . "'," . $amount . ")  ON DUPLICATE KEY UPDATE transaction_id='" . $transaction_id . "', amount=" . $amount . ";";
+        $this->openCart->db->query($query);
+        $this->getTransaction($order_id);
+    }
+
+    /**
+     * @param string $order_id
+     * @return array|null
+     */
+    public function getTransaction($order_id)
+    {
+        $query = "SELECT * FROM `oc_pay_transactions` WHERE `order_id` = '" . $order_id . "';";
+        $dbTransaction = $this->openCart->db->query($query);
+
+        if ($dbTransaction->num_rows) {
+            return [
+                'db' => $dbTransaction->row,
+                'status' => $this->getTransactionStatus($dbTransaction->row['transaction_id']),
+            ];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $order_id
+     * @param string $amount
+     * @param string $currency
+     * @throws Exception
+     */
+    public function refund($transactionId, $amount, $currency)
+    {
+        $request = new TransactionRefundRequest($transactionId);
+        $request->setConfig($this->helper->getConfig());
+        $request->setAmount($amount);
+        $request->setCurrency($currency);
+        $request->start();
+    }
+
+    /**
+     * @param string $order_id
+     * @param string $amount
+     * @throws Exception
+     */
+    public function capture($transactionId, $amount)
+    {
+        $request = new TransactionCaptureRequest($transactionId);
+        $request->setConfig($this->helper->getConfig());
+        $request->setAmount($amount);
+        $request->start();
     }
 }
