@@ -1,9 +1,9 @@
 <?php
+
 namespace Opencart\Catalog\Controller\Extension\paynl\Payment;
 
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
-
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayTransaction;
 
@@ -13,10 +13,9 @@ class Paynl extends \Opencart\System\Engine\Controller
     private $route;
     private $helper;
     private $payTransaction;
-
-    /**
-     * @param \Opencart\System\Engine\Registry $registry
-     */
+/**
+ * @param \Opencart\System\Engine\Registry $registry
+ */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
         $this->helper = new PayHelper($this);
@@ -35,7 +34,14 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['logged'] = $this->customer->isLogged();
         $data['language'] = $this->config->get('config_language');
         $data['order_id'] = (int) $this->session->data['order_id'];
-        $data['description'] = $this->session->data['payment_method']['description'];
+        $data['coupon'] = $this->session->data['coupon'] ?? '';
+        $data['voucher'] = $this->session->data['voucher'] ?? '';
+        $data['description'] = $this->session->data['payment_method']['description'] ?? '';
+        $data['issuers'] = $this->session->data['payment_method']['issuers'] ?? [];
+        $data['showIssuers'] = $this->session->data['payment_method']['showIssuers'] ?? 0;
+        $data['showDOB'] = $this->session->data['payment_method']['showDOB'] ?? 0;
+        $data['showCOC'] = $this->session->data['payment_method']['showCOC'] ?? 0;
+        $data['showVAT'] = $this->session->data['payment_method']['showVAT'] ?? 0;
         return $this->load->view($this->route, $data);
     }
 
@@ -56,8 +62,16 @@ class Paynl extends \Opencart\System\Engine\Controller
         $order = $this->model_checkout_order->getOrder($this->request->post['order_id']);
         if (!$json) {
             try {
+                $options = [
+                    'coupon' => $this->request->post['coupon'] ?? '',
+                    'voucher' => $this->request->post['voucher'] ?? '',
+                    'issuer' => $this->request->post['payIssuer'] ?? 0,
+                    'dob' => $this->request->post['payDOB'] ?? '',
+                    'coc' => $this->request->post['payCOC'] ?? '',
+                    'vat' => $this->request->post['payVAT'] ?? '',
+                ];
                 $this->helper->log('Transaction: starting transaction', ['orderId' => $this->request->post['order_id']]);
-                $json['redirect'] = $this->payTransaction->startTransaction($order);
+                $json['redirect'] = $this->payTransaction->startTransaction($order, $options);
             } catch (\Exception $e) {
                 $this->helper->log('Transaction: start failed', ['orderId' => $this->request->post['order_id'], ' Error' => $e->getMessage()]);
                 $json['error']['warning'] = $this->language->get('error_start_transaction');
