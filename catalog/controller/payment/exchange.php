@@ -44,7 +44,7 @@ class Exchange extends \Opencart\System\Engine\Controller
         }
 
         try {
-            $message = $this->payTransaction->processTransaction($transactionId, $orderId);
+            $message = $this->payTransaction->processTransaction($transactionId, $orderId, $action);
             $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
             die("TRUE|" . $message);
         } catch (PayException $e) {

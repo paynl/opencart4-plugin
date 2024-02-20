@@ -55,11 +55,12 @@ class PayTransaction
     /**
      * @param string $transactionId
      * @param string $orderId
+     * @param string $action
      * @return string
      * @throws Exception
      * @throws PayException
      */
-    public function processTransaction($transactionId, $orderId)
+    public function processTransaction($transactionId, $orderId, $action)
     {
         $this->openCart->load->model('checkout/order');
         $this->openCart->load->model('extension/paynl/payment/paynl');
@@ -67,7 +68,7 @@ class PayTransaction
         $transaction = $this->getTransactionStatus($transactionId);
 
         $iOrderState = null;
-        if ($transaction->isPaid() || $transaction->isAuthorized()) {
+        if ($transaction->isPaid() || $transaction->isAuthorized() || $transaction->getStatus()['code'] == 97) {
             $iOrderState = $this->STATUS_PROCESSING;
             $status = 'Processing';
         }
@@ -75,20 +76,28 @@ class PayTransaction
             $iOrderState = $this->STATUS_CANCELED;
             $status = 'Cancelled';
         }
-        if ($transaction->isRefunded(false)) {
+        if ($transaction->isRefunded(true)) {
             $iOrderState = $this->STATUS_REFUNDED;
             $status = 'Refunded';
+        } else if ($transaction->isRefunded()){   
+            $this->addHistory($orderId, $transactionId, 'Status unchanged', 'Processing', $transaction->getStatusName(), $action);  
         }
 
         $order_info = $this->openCart->model_checkout_order->getOrder($orderId);
-        $current_order_status = $order_info['order_status_id'];
+        $current_order_status = $order_info['order_status_id'];  
 
-        if ($current_order_status == $iOrderState || !$iOrderState || ($current_order_status == $this->STATUS_PROCESSING && $iOrderState == $this->STATUS_CANCELED)) {
+        if (!$iOrderState || ($current_order_status == $this->STATUS_PROCESSING && $iOrderState == $this->STATUS_CANCELED)) {
             return 'Ignoring';
+        }       
+                  
+        if ($current_order_status == $iOrderState) {
+            $message = 'Status unchanged';
+        } else {
+            $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState); 
+            $message = "Status updated to $status";   
         }
 
-        $message = "Status updated to $status";
-        $this->openCart->model_checkout_order->addHistory($orderId, (int) $iOrderState);
+        $this->addHistory($orderId, $transactionId, $message, $status, $transaction->getStatusName(), $action);    
 
         return $message;
     }
@@ -256,6 +265,32 @@ class PayTransaction
                 'db' => $dbTransaction->row,
                 'status' => $this->getTransactionStatus($dbTransaction->row['transaction_id']),
             ];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $order_id
+     * @param string $transaction_id
+     * @param float $amount
+     *
+     */
+    public function addHistory($order_id, $transaction_id, $message, $ocStatus, $payStatus, $action)
+    {
+        $query = "INSERT INTO `" . DB_PREFIX . "pay_history`(`order_id`, `transaction_id`, `message`, `oc_status`, `pay_status`, `pay_action`) VALUES ('" . $order_id . "','" . $transaction_id . "','" . $message. "','" . $ocStatus. "','" . $payStatus . "','" . $action . "');";
+        $this->openCart->db->query($query);   
+    }
+
+    /**
+     * @param string $order_id
+     */
+    public function getHistory($order_id)
+    {
+        $query = "SELECT * FROM `" . DB_PREFIX . "pay_history` WHERE `order_id` = '" . $order_id . "'  ORDER BY created_at DESC;";
+        $dbTransaction = $this->openCart->db->query($query);
+        if ($dbTransaction->num_rows) {
+            return $dbTransaction->rows ?? $dbTransaction->row;
         } else {
             return null;
         }
