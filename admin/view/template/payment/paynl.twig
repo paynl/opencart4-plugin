@@ -275,7 +275,27 @@
             </div>            
 
             {# Settings #}
-            <div id="tab-settings" class="tab-pane">      
+            <div id="tab-settings" class="tab-pane">   
+
+              <div class="row mb-3">
+                <label for="payment_paynl_screen_language" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_screen_language }}"></span>
+                    {{ text_screen_language }}
+                  </span>
+                </label>
+                <div class="col-sm-10">
+                  <div class="input-group">
+                      <select name="payment_paynl_screen_language" id="payment_paynl_screen_language" class="form-select">
+                        <option value="auto">Automatic</option>  
+                        <option value="nl" {% if pay_screen_language == 'nl'  %} selected {% endif %}>{{ text_nl }}</option>
+                        <option value="en" {% if pay_screen_language == 'en'  %} selected {% endif %}>{{ text_en }}</option>
+                        <option value="de" {% if pay_screen_language == 'de'  %} selected {% endif %}>{{ text_de }}</option>
+                        <option value="fr" {% if pay_screen_language == 'fr'  %} selected {% endif %}>{{ text_fr }}</option>                          
+                      </select>
+                  </div>                 
+                </div>
+              </div>    
 
               <div class="row mb-3">
                 <label for="payment_paynl_logging" class="col-sm-2 col-form-label">                

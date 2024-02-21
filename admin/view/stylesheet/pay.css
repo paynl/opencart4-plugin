@@ -33,7 +33,7 @@
 
 .payPaymentMethod.open .payPaymentMethodDetails {
     max-height: 999px;
-    overflow:visible;
+    overflow: visible;
 }
 
 .payPaymentTitle {
@@ -68,10 +68,10 @@
     margin: 10px 0px;
 }
 
-
 .labelText {
     position: relative;
     margin-right: 15px;
+    display: inline-block;
 }
 
 .payTooltip {
