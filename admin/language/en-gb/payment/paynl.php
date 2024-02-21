@@ -2,6 +2,7 @@
 
 // Heading
 $_['heading_title'] = 'Pay. Payments for Opencart 4';
+$_['heading_title_history'] = ' Pay. Payments';
 $_['heading_title_paynl'] = 'Pay. Payments for Opencart 4';
 // Text
 $_['text_description'] = 'Pay. Payments for Opencart 4';

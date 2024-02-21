@@ -183,6 +183,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $this->load->model('setting/event');
             $this->model_extension_paynl_payment_paynl->install();
             $this->model_setting_event->addEvent(['code' => 'paynl_set_order_tab', 'description' => 'Set Pay. tab in admin order view page', 'trigger' => 'admin/view/sale/order_info/before', 'action' => 'extension/paynl/payment/paynl.order_info_before', 'status' => true, 'sort_order' => 1]);
+            $this->model_setting_event->addEvent(['code' => 'paynl_set_order_tab_history', 'description' => 'Set Pay. tab in admin order view page', 'trigger' => 'admin/view/sale/order_info/before', 'action' => 'extension/paynl/payment/paynl.order_info_history_before', 'status' => true, 'sort_order' => 2]);
         }
     }
 
@@ -191,12 +192,12 @@ class Paynl extends \Opencart\System\Engine\Controller
      */
     public function uninstall(): void
     {
-
         if ($this->user->hasPermission('modify', 'extension/payment')) {
             $this->load->model($this->route);
             $this->load->model('setting/event');
             $this->model_extension_paynl_payment_paynl->uninstall();
             $this->model_setting_event->deleteEventByCode('paynl_set_order_tab');
+            $this->model_setting_event->deleteEventByCode('paynl_set_order_tab_history');
         }
     }
 
@@ -234,6 +235,29 @@ class Paynl extends \Opencart\System\Engine\Controller
                 }
                 exit;
             }
+        }
+    }
+
+    public function order_info_history_before(&$route, &$data, &$template_code)
+    {
+        $payHistory = $this->payTransaction->getHistory($this->request->get['order_id']);
+        if ($payHistory) {
+            if ($data['tabs']) {
+                foreach ($data['tabs'] as $tab_key => $tab) {
+                    if ($tab['code'] == $this->code) {
+                        unset($data['tabs'][$tab_key]);
+                    }
+                }
+            }
+
+            $data['pay_history'] = $payHistory;
+
+            $this->load->language($this->route);
+            $data['tabs'][] = [
+                'code' => $this->code,
+                'title' => $this->language->get('heading_title_history'),
+                'content' => $this->load->view('extension/paynl/payment/history', $data),
+            ];
         }
     }
 
