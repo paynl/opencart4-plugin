@@ -119,6 +119,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['countries'] = $this->model_localisation_country->getCountries();
 
         // Settings
+        $data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
 

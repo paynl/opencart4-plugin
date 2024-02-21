@@ -43,9 +43,15 @@ $_['tooltip_pm_show_dob'] = 'A date of birth is mandatory for most Buy Now Pay L
 $_['tooltip_pm_show_coc'] = 'Enable to add an extra field to the checkout for customers to enter their COC number';
 $_['tooltip_pm_show_vat'] = 'Enable to add an extra field to the checkout for customers to enter their VAT number';
 // Tab Settings
+$_['text_screen_language'] = 'Language payment screen';
+$_['tooltip_screen_language'] = 'Select which language the Pay. payment screen should be in. Choose "automatic" to match the language of the website.';
+$_['text_nl'] = 'Dutch';
+$_['text_en'] = 'English';
+$_['text_de'] = 'German';
+$_['text_fr'] = 'French';
 $_['text_logging'] = 'Logging';
-$_['text_logging_download'] = "Download logs";
-$_['tooltip_logging'] = "Log payment processing information";
+$_['text_logging_download'] = 'Download logs';
+$_['tooltip_logging'] = 'Log payment processing information';
 // Fields
 $_['text_no'] = 'No';
 $_['text_yes'] = 'Yes';

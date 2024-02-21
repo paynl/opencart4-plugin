@@ -131,7 +131,12 @@ class PayTransaction
         $customer->setIpAddress($_SERVER["REMOTE_ADDR"]);
         $customer->setPhone($order_info['telephone'] ?? '');
         $customer->setEmail($order_info['email'] ?? '');
-        $customer->setLanguage($this->openCart->language->get('code'));
+        
+        $language = $this->openCart->config->get('payment_' . $this->code . '_screen_language');
+        if ($language == 'auto' || $language == null) {
+            $language = $this->openCart->language->get('code');
+        }
+        $customer->setLanguage($language);
 
         $address = array();
         if (!empty($this->openCart->session->data['payment_address'])) {
