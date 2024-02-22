@@ -99,7 +99,44 @@ class PayTransaction
 
         $this->addHistory($orderId, $transactionId, $message, $status, $transaction->getStatusName(), $action);    
 
+        if ($transaction->isPaid()) {
+            $this->getRealPaymentMethod($orderId);
+        }
+
         return $message;
+    }
+
+    /**
+     * @param string $orderId
+     * @return null
+     */
+    public function getRealPaymentMethod($orderId)
+    {
+
+        $payment_profile_id = $_REQUEST['payment_profile_id'] ?? null;
+
+        $this->openCart->load->model('checkout/order');
+        $order = $this->openCart->model_checkout_order->getOrder($orderId);
+
+        if ($order['payment_method']['paymentOptionId'] == $payment_profile_id) {
+            return;
+        }
+
+        $this->openCart->load->model('extension/paynl/payment/paynl');
+        $payment_methods = $this->openCart->{'model_extension_paynl_payment_paynl'}->getMethods([], true);
+
+        foreach ($payment_methods['option'] as $key => $payment_method) {
+            if ($payment_method['paymentOptionId'] == $payment_profile_id) {
+                $code = $payment_method['code'];
+                $name = $payment_method['name'];
+                $method = json_encode($payment_method);
+                if (!empty($method)) {
+                    $this->openCart->db->query("UPDATE `" . DB_PREFIX . "order` SET `payment_method` = '" . $this->openCart->db->escape($method) . "' WHERE `order_id` = '" . (int) $orderId . "'");
+                }
+                break;
+            }
+        }
+        return;
     }
 
     /**
