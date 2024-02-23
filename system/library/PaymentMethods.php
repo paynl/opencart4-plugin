@@ -5,12 +5,15 @@ namespace Opencart\System\Library;
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
-use Opencart\System\Library\PayHelper;
+use Opencart\System\Library\PayConfig;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
 
 class PayPaymentMethods
 {
     public $openCart;
+    public $payConfig;
+    public $code;
+    public $route;
 
     const METHOD_IDEAL = 10; // phpcs:ignore
     const METHOD_INSTORE = 1729; // phpcs:ignore
@@ -34,9 +37,9 @@ class PayPaymentMethods
     public function __construct($openCart) // phpcs:ignore
     {
         $this->openCart = $openCart;
-        $this->helper = new PayHelper($openCart);
-        $this->code = $this->helper->code;
-        $this->route = $this->helper->route;
+        $this->payConfig = new PayConfig($openCart);
+        $this->code = $this->payConfig->code;
+        $this->route = $this->payConfig->route;
 
         $this->showIssuers = [
             self::METHOD_IDEAL,
@@ -62,8 +65,8 @@ class PayPaymentMethods
      */
     public function getPaymentOptions()
     {
-        $config = $this->helper->getConfig();
-        $request = new ServiceGetConfigRequest($this->openCart->config->get('payment_' . $this->code . '_serviceid'));
+        $config = $this->payConfig->getConfig();
+        $request = new ServiceGetConfigRequest($this->payConfig->getServiceId());
         $request->setConfig($config);
         $service = $request->start();
         $paymentMethodsFromPay = [];

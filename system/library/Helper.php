@@ -5,15 +5,17 @@ namespace Opencart\System\Library;
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
+use Opencart\System\Library\Log;
+use Opencart\System\Library\PayConfig;
 use PayNL\Sdk\Config\Config;
 use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
-use Opencart\System\Library\Log;
 
 class PayHelper
 {
-    public $code = 'paynl';
-    public $route = 'extension/paynl/payment/paynl';
     public $openCart;
+    public $payConfig;
+    public $code;
+    public $route;
 
     /**
      * @param object $openCart
@@ -21,38 +23,11 @@ class PayHelper
     public function __construct($openCart) // phpcs:ignore
     {
         $this->openCart = $openCart;
+        $this->payConfig = new PayConfig($openCart);
+        $this->code = $this->payConfig->code;
+        $this->route = $this->payConfig->route;
     }
-
-    /**
-     * @return string
-     */
-    public function getObject()
-    {
-        $json = file_get_contents(DIR_EXTENSION . 'paynl/install.json');
-        $jsonData = json_decode($json, true);
-
-        $object_string = 'opencart 4 ';
-        $object_string .= $jsonData['version'] ?? '-';
-        $object_string .= ' | ';
-        $object_string .= VERSION ?? '-';
-        $object_string .= ' | ';
-        $object_string .= substr(phpversion(), 0, 3);
-
-        return $object_string;
-    }
-
-    /**
-     * @return Config
-     * @throws Exception
-     */
-    public function getConfig()
-    {
-        $config = new Config();
-        $config->setUsername($this->openCart->config->get('payment_' . $this->code . '_tokencode'));
-        $config->setPassword($this->openCart->config->get('payment_' . $this->code . '_apitoken'));
-        return $config;
-    }
-
+ 
     /**
      * @param string $tokencode
      * @param string $apitoken
@@ -82,7 +57,7 @@ class PayHelper
      */
     public function log(string $message = '', array $data = [])
     {
-        $logging_enabled = $this->openCart->config->get('payment_' . $this->code . '_logging') ?? 1;
+        $logging_enabled = $this->payConfig->isLoggingEnabled();
         if ($logging_enabled !== '0') {
             if (!empty($data)) {
                 foreach ($data as $key => $dataText) {

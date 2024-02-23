@@ -4,8 +4,7 @@ namespace Opencart\Catalog\Model\Extension\paynl\Payment;
 
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
-use Opencart\System\Engine\Model;
-use Opencart\System\Library\Helper;
+use Opencart\System\Library\PayConfig;
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayPaymentMethods;
 
@@ -13,6 +12,7 @@ class Paynl extends \Opencart\System\Engine\Model
 {
     private $code;
     private $route;
+    private $payConfig;
     private $helper;
     private $paymentMethods;
 
@@ -21,10 +21,11 @@ class Paynl extends \Opencart\System\Engine\Model
      */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
+        $this->payConfig = new PayConfig($this);
         $this->helper = new PayHelper($this);
         $this->paymentMethods = new PayPaymentMethods($this);
-        $this->code = $this->helper->code;
-        $this->route = $this->helper->route;
+        $this->code = $this->payConfig->code;
+        $this->route = $this->payConfig->route;
         parent::__construct($registry);
     }
 
@@ -47,13 +48,13 @@ class Paynl extends \Opencart\System\Engine\Model
      * @param array $address
      * @return array
      */
-    public function getMethods(array $address): array
+    public function getMethods(array $address, $ignoreChecks = false): array
     {
         $option_data = [];
         try {
             $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
             foreach ($payPaymentMethods as $key => $method) {
-                if ($this->checkPaymentMethod($method)) {
+                if ($this->checkPaymentMethod($method) || $ignoreChecks) {
                     $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
                     $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
                     $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');

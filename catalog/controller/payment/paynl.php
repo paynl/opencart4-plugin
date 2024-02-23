@@ -4,6 +4,8 @@ namespace Opencart\Catalog\Controller\Extension\paynl\Payment;
 
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
+
+use Opencart\System\Library\PayConfig;
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayTransaction;
 
@@ -11,6 +13,7 @@ class Paynl extends \Opencart\System\Engine\Controller
 {
     private $code;
     private $route;
+    private $payConfig;
     private $helper;
     private $payTransaction;
 /**
@@ -18,10 +21,11 @@ class Paynl extends \Opencart\System\Engine\Controller
  */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
+        $this->payConfig = new PayConfig($this);
         $this->helper = new PayHelper($this);
         $this->payTransaction = new PayTransaction($this);
-        $this->code = $this->helper->code;
-        $this->route = $this->helper->route;
+        $this->code = $this->payConfig->code;
+        $this->route = $this->payConfig->route;
         parent::__construct($registry);
     }
 
