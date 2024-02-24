@@ -6,6 +6,7 @@ require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use Opencart\System\Library\PayHelper;
+use Opencart\System\Library\PayConfig;
 use Opencart\System\Library\PayTransaction;
 use Opencart\System\Library\PayPaymentMethods;
 
@@ -13,6 +14,7 @@ class Paynl extends \Opencart\System\Engine\Controller
 {
     private $code;
     private $route;
+    private $payConfig;
     private $helper;
     private $payTransaction;
     private $paymentMethods;
@@ -22,11 +24,12 @@ class Paynl extends \Opencart\System\Engine\Controller
      */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
+        $this->payConfig = new PayConfig($this);
         $this->helper = new PayHelper($this);
         $this->payTransaction = new PayTransaction($this);
         $this->paymentMethods = new PayPaymentMethods($this);
-        $this->code = $this->helper->code;
-        $this->route = $this->helper->route;
+        $this->code = $this->payConfig->code;
+        $this->route = $this->payConfig->route;
         parent::__construct($registry);
     }
 
@@ -120,6 +123,7 @@ class Paynl extends \Opencart\System\Engine\Controller
 
         // Settings
         $data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
+        $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
 
