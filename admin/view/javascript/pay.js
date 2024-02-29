@@ -24,4 +24,11 @@ $(document).ready(function () {
         })
     })
 
+    $('#payment_paynl_failover_gateway').on('change', function () {
+        if ($(this).val() == 'custom') {
+            $('#custom_core').show()
+        } else {
+            $('#custom_core').hide()
+        }
+    })
 })

@@ -48,7 +48,7 @@ class PayTransaction
     public function getTransactionStatus($transactionId)
     {
         $transactionStatusRequest = new TransactionStatusRequest($transactionId);
-        $transactionStatusRequest->setConfig($this->payConfig->getConfig());
+        $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
         $transaction = $transactionStatusRequest->start();
         return $transaction;
     }
@@ -146,7 +146,7 @@ class PayTransaction
     public function startTransaction(array $order_info, array $options)
     {
         $request = new TransactionCreateRequest();
-        $request->setConfig($this->payConfig->getConfig());
+        $request->setConfig($this->payConfig->getConfig(true));
         $request->setServiceId($this->payConfig->getServiceId());
         $request->setDescription('Order ' . $order_info['order_id']);
         $request->setReference($order_info['order_id']);
