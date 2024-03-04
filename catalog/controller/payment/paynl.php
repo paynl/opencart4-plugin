@@ -46,6 +46,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['showDOB'] = $this->session->data['payment_method']['showDOB'] ?? 0;
         $data['showCOC'] = $this->session->data['payment_method']['showCOC'] ?? 0;
         $data['showVAT'] = $this->session->data['payment_method']['showVAT'] ?? 0;
+        $data['paymentMethodName'] = $this->session->data['payment_method']['name'] ?? 'Pay.';
         return $this->load->view($this->route, $data);
     }
 
@@ -74,14 +75,14 @@ class Paynl extends \Opencart\System\Engine\Controller
                     'coc' => $this->request->post['payCOC'] ?? '',
                     'vat' => $this->request->post['payVAT'] ?? '',
                 ];
-                $this->helper->log('Transaction: starting transaction', ['orderId' => $this->request->post['order_id']]);
+                $this->helper->logDebug('Transaction: starting transaction', ['orderId' => $this->request->post['order_id']]);
                 $json['redirect'] = $this->payTransaction->startTransaction($order, $options);
             } catch (\Exception $e) {
-                $this->helper->log('Transaction: start failed', ['orderId' => $this->request->post['order_id'], ' Error' => $e->getMessage()]);
+                $this->helper->logCritical('Transaction: start failed', ['orderId' => $this->request->post['order_id'], ' Error' => $e->getMessage()]);
                 $json['error']['warning'] = $this->language->get('error_start_transaction');
             }
         } else {
-            $this->helper->log('Transaction: cannot start transaction', ['orderId' => $this->request->post['order_id'], ' Json' => json_encode($json)]);
+            $this->helper->logNotice('Transaction: cannot start transaction', ['orderId' => $this->request->post['order_id'], ' Json' => json_encode($json)]);
         }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));

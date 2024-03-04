@@ -8,3 +8,6 @@ $_['session_error_payment_method'] = 'Session expired for this paymentmethod.';
 $_['denied_heading_title'] = 'Payment denied';
 $_['text_denied'] = 'Payment denied';
 $_['text_denied_message'] = 'The chosen payment method has denied your payment. <br/> Please select a different payment method.';
+
+// Checkout
+$_['select_issuer_text'] = 'Choose your bank:';

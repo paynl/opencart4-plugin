@@ -69,9 +69,9 @@ class PayConfig
     /**
      * @return boolean
      */
-    public function isLoggingEnabled()
+    public function getLoggingLevel()
     {
-        return ($this->openCart->config->get('payment_' . $this->code . '_logging') ?? 1);
+        return ($this->openCart->config->get('payment_' . $this->code . '_logging') ?? 0);
     }
 
     /**

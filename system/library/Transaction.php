@@ -113,7 +113,7 @@ class PayTransaction
      */
     public function getRealPaymentMethod($orderId)
     {
-        $payment_profile_id = $_REQUEST['payment_profile_id'] ?? null;
+        $payment_profile_id = $this->openCart->request->get['payment_profile_id'] ?? null;
 
         $this->openCart->load->model('checkout/order');
         $order = $this->openCart->model_checkout_order->getOrder($orderId);
@@ -208,7 +208,7 @@ class PayTransaction
             $devAddress->setStreetNumber($arrStreet['number']);
             $devAddress->setZipCode($address['postcode'] ?? '');
             $devAddress->setCity($address['city'] ?? '');
-            $devAddress->setCountryCode($address['country'] ?? '');
+            $devAddress->setCountryCode($address['iso_code_2'] ?? '');
             $order->setDeliveryAddress($devAddress);
 
             $invAddress = new \PayNL\Sdk\Model\Address();
@@ -217,7 +217,7 @@ class PayTransaction
             $invAddress->setStreetNumber($arrStreet['number']);
             $invAddress->setZipCode($address['postcode'] ?? '');
             $invAddress->setCity($address['city'] ?? '');
-            $invAddress->setCountryCode($address['country'] ?? '');
+            $invAddress->setCountryCode($address['iso_code_2'] ?? '');
             $order->setInvoiceAddress($invAddress);
         }
 

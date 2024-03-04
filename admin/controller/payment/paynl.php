@@ -110,7 +110,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                 return (int) $a['sort'] - (int) $b['sort'];
             });
         } catch (\Exception $e) {
-            $this->helper->log('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
+            $this->helper->logCritical('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
         }
 
         $data['pay_paymentmethods'] = $gateways;
@@ -126,6 +126,12 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
+        $data['pay_logging_options'] = [
+            $this->helper::LOG_ALL => $this->language->get('text_logging_all'), 
+            $this->helper::LOG_CRITICAL_NOTICE => $this->language->get('text_critical_notice'), 
+            $this->helper::LOG_ONLY_CRITICAL => $this->language->get('text_critical_only'), 
+            $this->helper::LOG_NONE => $this->language->get('text_no_logging')
+        ];
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -350,14 +356,14 @@ class Paynl extends \Opencart\System\Engine\Controller
      */
     public function refund()
     {
-        $transactionId = $_REQUEST['transaction_id'] ?? null;
-        $amount = $_REQUEST['amount'] ?? null;
-        $currency = $_REQUEST['currency'] ?? null;
+        $transactionId = $this->request->get['transaction_id'] ?? null;
+        $amount = $this->request->get['amount'] ?? null;
+        $currency = $this->request->get['currency'] ?? null;
         try {
             $this->payTransaction->refund($transactionId, $amount, $currency);
             $json['success'] = 'Pay. refunded ' . $currency . ' ' . $amount . ' successfully!';
         } catch (\Exception $e) {
-            $this->helper->log('Admin Refund: ' . $e->getMessage(), ['transactionId' => $transactionId, 'amount' => $amount, 'currency' => $currency]);
+            $this->helper->logCritical('Admin Refund: ' . $e->getMessage(), ['transactionId' => $transactionId, 'amount' => $amount, 'currency' => $currency]);
             $json['error'] = 'Pay. couldn\'t refund, please try again later.';
         }
         $this->response->addHeader('Content-Type: application/json');
@@ -369,14 +375,14 @@ class Paynl extends \Opencart\System\Engine\Controller
      */
     public function capture()
     {
-        $transactionId = $_REQUEST['transaction_id'] ?? null;
-        $amount = $_REQUEST['amount'] ?? null;
-        $currency = $_REQUEST['currency'] ?? null;
+        $transactionId = $this->request->get['transaction_id'] ?? null;
+        $amount = $this->request->get['amount'] ?? null;
+        $currency = $this->request->get['currency'] ?? null;
         try {
             $this->payTransaction->capture($transactionId, $amount);
             $json['success'] = 'Pay. captured ' . $currency . ' ' . $amount . ' successfully!';
         } catch (\Exception $e) {
-            $this->helper->log('Admin Refund: ' . $e->getMessage(), ['transactionId' => $transactionId, 'amount' => $amount, 'currency' => $currency]);
+            $this->helper->logCritical('Admin Refund: ' . $e->getMessage(), ['transactionId' => $transactionId, 'amount' => $amount, 'currency' => $currency]);
             $json['error'] = 'Pay. couldn\'t capture, please try again later.';
         }
         $this->response->addHeader('Content-Type: application/json');

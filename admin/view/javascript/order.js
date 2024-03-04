@@ -1,29 +1,51 @@
 $(document).ready(function () {
+
     $('#payOrderAmount').change(function () {
-        $(this).val(parseFloat($(this).val()).toFixed(2))
+        $(this).val(parseFloat($.trim($(this).val().replace(/[^0-9\.]/g, ''))).toFixed(2))
+    })
+
+    $('#paymodalcancel, #modal-pay .btn-close').click(function () {
+        payModelClose()
     })
 
     $('#payOrderButton').click(function () {
-        if ($('#payOrderAmount').val()) {
-            if (confirm($('#confirmMessage').val().replace('%amount%', $('#payOrderCurrency').val() + ' ' + $('#payOrderAmount').val())) == true) {
-                ajax($('#ajaxURL').val() + '&amount=' + $('#payOrderAmount').val() + '&currency=' + $('#payOrderCurrency').val())
-            }
-        }
+        var message = $('#confirmMessage').val().replace('%amount%', $('#payOrderCurrency').val() + ' ' + $('#payOrderAmount').val());
+        $('#payMessage').text(message);
+        $('#modal-pay').show();
+        $('body').append('<div class="modal-backdrop show"></div>');       
     })
 
+    $('#paymodalconfirm').click(function () {
+        ajax($('#ajaxURL').val() + '&amount=' + $.trim($('#payOrderAmount').val()) + '&currency=' + $('#payOrderCurrency').val());
+    })
+
+    $('#paymodalclose, #modal-pay-success .btn-close').click(function () {
+        window.location.reload(true)
+    })
+
+    function payModelClose(){
+        $('#payMessage').text('');
+        $('#modal-pay').hide();
+        $('.modal-backdrop').remove();
+    }
+
     function ajax (url) {
+        payModelClose()
         $.ajax({
             url: url,
             method: 'GET',
             dataType: 'json',
             asynchronous: true,
             success: function (data) {
+                console.log(data);
                 if (data['error']) {
-                alert(data['error'])
+                    var message = data['error']
                 } else if (data['success']) {
-                alert(data['success'])
-                window.location.reload(true)
-                }
+                    var message = data['success']
+                }              
+                $('#paySuccessMessage').text(message);
+                $('#modal-pay-success').show();
+                $('body').append('<div class="modal-backdrop show"></div>');
             }
         })
     }
