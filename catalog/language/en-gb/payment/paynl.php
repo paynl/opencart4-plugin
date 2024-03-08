@@ -2,7 +2,8 @@
 
 // Error
 $_['session_error_order'] = 'Session expired for this order.';
-$_['session_error_payment_method'] = 'Session expired for this paymentmethod.';
+$_['session_error_payment_method'] = 'Session expired for this payment method.';
+$_['error_start_transaction'] = 'Could not start transaction with chosen payment method.';
 
 // Denied page
 $_['denied_heading_title'] = 'Payment denied';
