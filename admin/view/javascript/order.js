@@ -4,28 +4,36 @@ $(document).ready(function () {
         $(this).val(parseFloat($.trim($(this).val().replace(/[^0-9\.]/g, ''))).toFixed(2))
     })
 
-    $('#paymodalcancel, #modal-pay .btn-close').click(function () {
+    $('#paymodalcancel, #paymodalclose, .paymodel .btn-close').click(function () {
         payModelClose()
-    })
+    })   
 
     $('#payOrderButton').click(function () {
-        var message = $('#confirmMessage').val().replace('%amount%', $('#payOrderCurrency').val() + ' ' + $('#payOrderAmount').val());
-        $('#payMessage').text(message);
-        $('#modal-pay').show();
-        $('body').append('<div class="modal-backdrop show"></div>');       
+        var amount = parseFloat($.trim($('#payOrderAmount').val().replace(/[^0-9\.]/g, '')));
+        if((isFloat(amount) || isInteger(amount)) && !(amount <= 0)){
+            var message = $('#confirmMessage').val().replace('%amount%', $('#payOrderCurrency').val() + ' ' + $('#payOrderAmount').val());
+            $('#payMessage').text(message);
+            $('#modal-pay').show();
+            $('body').append('<div class="modal-backdrop show"></div>');   
+        } else {
+            showMessage($('#nanErrorMessage').val())
+        }            
     })
 
     $('#paymodalconfirm').click(function () {
         ajax($('#ajaxURL').val() + '&amount=' + $.trim($('#payOrderAmount').val()) + '&currency=' + $('#payOrderCurrency').val());
-    })
+    })    
 
-    $('#paymodalclose, #modal-pay-success .btn-close').click(function () {
-        window.location.reload(true)
-    })
+    function showMessage(message){
+        $('#paySuccessMessage').text(message);
+        $('#modal-pay-success').show();
+        $('body').append('<div class="modal-backdrop show"></div>');
+    }
 
     function payModelClose(){
         $('#payMessage').text('');
         $('#modal-pay').hide();
+        $('#modal-pay-success').hide();
         $('.modal-backdrop').remove();
     }
 
@@ -37,16 +45,24 @@ $(document).ready(function () {
             dataType: 'json',
             asynchronous: true,
             success: function (data) {
-                console.log(data);
                 if (data['error']) {
                     var message = data['error']
                 } else if (data['success']) {
                     var message = data['success']
-                }              
-                $('#paySuccessMessage').text(message);
-                $('#modal-pay-success').show();
-                $('body').append('<div class="modal-backdrop show"></div>');
+                    $('#paymodalclose, #modal-pay-success .btn-close').click(function () {
+                        window.location.reload(true)
+                    })
+                }             
+                showMessage(message)
             }
         })
+    }
+
+    function isFloat(n) {
+        return n === +n && n !== (n|0);
+    }
+    
+    function isInteger(n) {
+        return n === +n && n === (n|0);
     }
 })
