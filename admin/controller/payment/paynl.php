@@ -63,6 +63,9 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
 
+        $this->load->model('localisation/language');
+		$data['languages'] = $this->model_localisation_language->getLanguages();
+
         // Paymentmethods
         $gateways = [];
         try {
@@ -90,6 +93,14 @@ class Paynl extends \Opencart\System\Engine\Controller
                 $gateways[$method->getId()]['countries'] = $countriesSetting;
                 $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
                 $gateways[$method->getId()]['image'] = $image;
+
+                $gateways[$method->getId()]['name_translations'] = [];
+                $gateways[$method->getId()]['description_translations'] = [];    
+                
+                foreach ($this->model_localisation_language->getLanguages() as $language) {
+                    $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
+                    $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
+                }      
 
                 if ($this->paymentMethods->showIssuersField($method->getId())) {
                     $gateways[$method->getId()]['showIssuersField'] = true;
@@ -126,6 +137,10 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
+
+        // Suggestions
+        $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
+        $data['pay_plugin_version'] = $this->payConfig->getObject();
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -381,5 +396,65 @@ class Paynl extends \Opencart\System\Engine\Controller
         }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
+    }
+
+    /**
+     * @return void
+     */
+    public function suggestions()
+    {
+        try {
+
+            $suggestions_form_message = $this->request->post['message']; 
+            $suggestions_form_email = $this->request->post['email'];
+            $suggestions_form_plugin_version = $this->request->post['pluginverison'];
+    
+            $pluginVersion = strtolower($suggestions_form_plugin_version);
+            $phpVersion = phpversion();
+            $message = isset($suggestions_form_message) ? nl2br($suggestions_form_message) : null;
+
+            $email = null;
+            if (isset($suggestions_form_email) && !empty($suggestions_form_email)) {
+                $email = '<b>Client Email:</b><span style="width: 100%;box-sizing: border-box; display:inline-block; padding: 10px; border:1px solid #cccccc;">' . strtolower($suggestions_form_email) . '</span><br/><br/>'; // phpcs:ignore
+            }
+
+            if (empty($message)) {
+                throw new Exception('Empty message');
+            }
+
+            $to = 'webshop@pay.nl';
+            $subject = 'Feature Request Opencart4';
+            $body = '
+            <table role="presentation" style="margin-top:50px; margin-bottom:50px; width:100%;border-collapse:collapse;border:0;border-spacing:0;background:#ffffff;">
+                <tr>
+                    <td align="center" style="padding:0;">
+                        <table role="presentation" style="width:600px;border-collapse:collapse;border:1px solid #cccccc;border-spacing:0;text-align:left;">
+                            <tr>
+                                <td style="padding:25px;">
+                                    <h1 style="font-size:24px;margin:0 0 20px 0;font-family:Arial,sans-serif;">Pay. Suggestion</h1>
+                                    <p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">
+                                        Pay. object: ' . $pluginVersion . '.<br/><br/>
+                                        ' . $email . '
+                                        <b>Message:</b>
+                                        <span style="width: 100%;box-sizing: border-box; display:inline-block; padding: 10px; border:1px solid #cccccc;">' . $message . '</span>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            ';
+            $headers = "Content-Type: text/html; charset=UTF-8";
+            mail($to, $subject, $body, $headers);
+            $result = true;
+        } catch (Exception $e) {
+            $result = false;
+        }
+        header('Content-Type: application/json;charset=UTF-8');
+        $returnarray = array(
+            'success' => $result
+        );
+        die(json_encode($returnarray));
     }
 }

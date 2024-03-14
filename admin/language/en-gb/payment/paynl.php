@@ -35,6 +35,7 @@ $_['text_pm_show_issuers'] = 'Show bank selection';
 $_['text_pm_show_dob'] = 'Show Date of Birth Field';
 $_['text_pm_show_coc'] = 'Show COC Field';
 $_['text_pm_show_vat'] = 'Show VAT Field';
+$_['text_pm_translations'] = 'Translations';
 $_['tooltip_pm_name'] = 'The name of the payment method as shown in the checkout.';
 $_['tooltip_pm_min'] = 'Minimum order amount for this payment method, leave blank for no limit.';
 $_['tooltip_pm_max'] = 'Maximum order amount for this payment method, leave blank for no limit.';
@@ -54,6 +55,16 @@ $_['tooltip_follow_payment'] = 'This will ensure the order is updated with the a
 $_['text_logging'] = 'Logging';
 $_['text_logging_download'] = 'Download logs';
 $_['tooltip_logging'] = 'Log payment processing information';
+// Tab Suggestions
+$_['text_suggestions'] = 'If you have a feature request or other ideas, let us know!<br/>Your submission will be reviewed by our development team.<br/><br/>If needed, we will contact you for further information via the e-mail address provided.<br/>Please note: this form is not for Support requests, please contact <a href="mailto:support@pay.nl" target="_blank">support@pay.nl</a> for this.'; // phpcs:ignore
+$_['text_email_label'] = 'E-mail (optional)';
+$_['text_email_error'] = 'Please fill in a valid e-mail.';
+$_['text_message_label'] = 'Message';
+$_['text_message_error'] = 'Please fill in your message.';
+$_['text_message_placeholder'] = 'Leave your suggestions here…';
+$_['text_suggestions_submit'] = 'Submit';
+$_['text_suggestions_success_modal'] = 'Sent! Thank you for your contribution.';
+$_['text_suggestions_fail_modal'] = 'E-mail could not be sent, please try again later.';
 // Fields
 $_['text_no'] = 'No';
 $_['text_yes'] = 'Yes';

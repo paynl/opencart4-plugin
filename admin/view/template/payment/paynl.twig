@@ -37,6 +37,16 @@
                 </div>
               </div>   
 
+              {% if apitoken is empty %}
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">               
+                    </label>
+                    <div class="col-sm-10">                  
+                      {{ text_register }} <a href="https://signup.pay.nl/" target="_BLANK">{{ text_here }}</a>!
+                    </div>
+                  </div> 
+              {% endif %}
+
               <div class="row mb-3">
                 <label for="payment_paynl_tokencode" class="col-sm-2 col-form-label">                
                   <span class="labelText">
@@ -135,12 +145,46 @@
                         </label>
                         <div class="col-sm-10">                  
                           <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_name" value="{{ paymentmethod.name|e }}"/>            
+                          {% if languages|length > 1 %}
+                            <br/>
+                            <div class="translations">
+                                <div class="show_translations">{{ text_pm_translations }} &nbsp; <i class="fa-solid fa-chevron-down"></i></div>       
+                                    <div class="language-options hidden">    
+                                        <br>
+                                        {% for language in languages %}                                                      
+                                          <label class="control-label col-lg-2 align-left" style="padding:0;">{{ language.name|e }}</label>
+                                          <div class="col-lg-10">
+                                            <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_name_{{ language.code|e }}" value="{{ paymentmethod.name_translations[language.code]|e }}"/>                       
+                                          </div>   
+                                        {% endfor %}                                                                    
+                                        <div style="clear:both"></div>                                
+                                    <br>
+                                </div>
+                            </div>
+                          {% endif %}
                         </div>
                       </div>   
                       <div class="row mb-3">
                         <label for="payment_paynl_paymentmethod_{{ id }}_description" class="col-sm-2 col-form-label">{{ text_pm_desc }}</label>
                         <div class="col-sm-10">                  
-                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description" value="{{ paymentmethod.description|e }}"/>            
+                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description" value="{{ paymentmethod.description|e }}"/>
+                          {% if languages|length > 1 %}
+                            <br/>
+                            <div class="translations">
+                                <div class="show_translations">{{ text_pm_translations }} &nbsp; <i class="fa-solid fa-chevron-down"></i></div>                            
+                                    <div class="language-options hidden">   
+                                        <br> 
+                                        {% for language in languages %}                                                      
+                                          <label class="control-label col-lg-2 align-left" style="padding:0;">{{ language.name|e }}</label>
+                                          <div class="col-lg-10">
+                                            <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description_{{ language.code|e }}" value="{{ paymentmethod.description_translations[language.code]|e }}"/>                       
+                                          </div>   
+                                        {% endfor %}                                                                    
+                                        <div style="clear:both"></div>                                
+                                    <br>
+                                </div>
+                            </div>
+                          {% endif %}
                         </div>
                       </div> 
                       <div class="row mb-3">

@@ -108,3 +108,26 @@
     visibility: visible;
     opacity: 1;
 }
+
+.modal button.close {
+    border: none;
+    font-size: 20px;
+    background: transparent;
+    align-self: center;
+    margin-left: auto;
+}
+
+.modal .modal-body {
+    text-align: center;
+}
+
+.translations .hidden{
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.translations .show_translations{
+    width: auto;
+    display: inline-block;
+    cursor: pointer;
+}
