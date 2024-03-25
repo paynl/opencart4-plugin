@@ -4,6 +4,14 @@ $(document).ready(function () {
         $(this).val(parseFloat($.trim($(this).val().replace(/[^0-9\.]/g, ''))).toFixed(2))
     })
 
+    $('#payOrderAmount').on('keypress', function (e) {
+        var charCode = (typeof e.which == 'undefined') ? e.keyCode : e.which
+        var charStr = String.fromCharCode(charCode)
+        if (!charStr.match(/^[0-9]+$/) && charStr !== '.') {
+            e.preventDefault()
+        }
+    })
+
     $('#paymodalcancel, #paymodalclose, .paymodel .btn-close').click(function () {
         payModelClose()
     })   
