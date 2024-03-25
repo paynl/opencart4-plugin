@@ -37,6 +37,24 @@
                 </div>
               </div>   
 
+              {% if false %}
+                <div class="row mb-3">
+                  <label for="input-status" class="col-sm-2 col-form-label">{{ text_version }}</label>
+                  <div class="col-sm-10">
+                    <div class="version">
+                      <input id="pay_checkversion_url" type="hidden" class="form-control" name="pay_checkversion_url" value="{{ pay_checkversion_url }}"/>
+                        <input id="pay_current_version" type="hidden" class="form-control" name="pay_current_version" value="{{ pay_current_version }}"/>
+                        <span id="paynl_version_check_current_version">{{ pay_current_version }}</span>
+                        <a id="check_version_submit" class="btn btn-primary" target="_BLANK">Check Version</a>
+                        <span id="paynl_version_check">                 
+                            <span id="paynl_version_check_loading" class="payHide">Loading...</span>         
+                            <span id="paynl_version_check_result" class="payHide"></span>
+                        </span>
+                    </div>
+                  </div>
+                </div>  
+              {% endif %}
+
               {% if apitoken is empty %}
                   <div class="row mb-3">
                     <label class="col-sm-2 col-form-label">               
@@ -362,6 +380,8 @@
                 </label>
                 <div class="col-sm-10">                  
                   <input type="text" class="form-control" name="payment_paynl_test_ip_address" value="{{ pay_test_ip_address }}"/>             
+                  <br/>
+                  {{ text_testip_desc }} {{current_ip}}  
                 </div>
               </div>         
 
@@ -403,11 +423,83 @@
                   </div>                  
                 </div>
               </div> 
-
           </div>
+
+          {# Suggestions #}
+          <div id="tab-suggestions" class="tab-pane">            
+            <input type="hidden" id="pay_suggestions_url" value="{{ pay_suggestions_url }}"/>
+            <input type="hidden" id="pay_plugin_version" value="{{ pay_plugin_version }}"/>
+            <div class="form-group">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-envelope"></i> Suggestions?</h3>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2">
+                    <p>
+                        {{ text_suggestions}}
+                    </p>
+                </div>
+            </div>
+            <br/>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="suggestions_form_email" style="width: auto;">{{ text_email_label }}</label>
+                <div id="email_error" class="text-danger col-sm-10" style="display: none">{{ text_email_error }}</div>
+                <div class="col-sm-10">
+                    <input id="suggestions_form_url" type="hidden" class="form-control" name="suggestions_form_url" value="{{ action }}"/>
+                    <input id="suggestions_form_plugin_version" type="hidden" class="form-control" name="suggestions_plugin_version" value="{{ version }}"/>
+                    <input id="suggestions_form_email" type="text" class="form-control" name="suggestions_form_email"/>
+                </div>
+            </div>
+            <br/>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="message" style="width: auto;">{{ text_message_label }}</label>
+                <div id="message_error" class="text-danger col-sm-10" style="display: none">{{ text_message_error }}</div>
+                <div class="col-sm-10">
+                    <textarea id="suggestions_form_message" class="form-control" name="suggestions_form_message" placeholder="{{ text_message_placeholder }}" cols="80" rows="10"></textarea>
+                </div>
+            </div>
+            <br/>
+            <div class="form-group">
+                <button form="suggestions_form" title="Submit" id="suggestions_form_submit" class="btn btn-primary">{{ text_suggestions_submit }}</button>
+            </div>         
+          </div> 
+
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="suggestions_form_success" tabindex="-1" role="dialog" aria-labelledby="suggestions_form_success_label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{ text_suggestions_success_modal }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="suggestions_form_fail" tabindex="-1" role="dialog" aria-labelledby="suggestions_form_fail_label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{ text_suggestions_fail_modal }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{ footer }}

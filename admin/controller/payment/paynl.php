@@ -62,6 +62,8 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['serviceid'] = $this->config->get('payment_' . $this->code . '_serviceid');
         $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
+        $data['pay_checkversion_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|version_check', 'user_token=' . $this->session->data['user_token']);
+        $data['pay_current_version'] = $this->payConfig->getVersion();
 
         $this->load->model('localisation/language');
 		$data['languages'] = $this->model_localisation_language->getLanguages();
@@ -398,6 +400,41 @@ class Paynl extends \Opencart\System\Engine\Controller
         }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
+    }
+
+    /**
+     * @return void
+     */
+    public function version_check()
+    {
+        $version = $this->request->post['versionCheck']; 
+        $result = false;    
+        $url = 'https://api.github.com/repos/paynl/opencart3-plugin/releases';
+        $options = array(
+            'http' => array(
+                'method' => 'GET',
+                'header' => 'User-Agent:' . $_SERVER['HTTP_USER_AGENT']));
+
+        $context = stream_context_create($options);
+
+        try {
+            $output = file_get_contents($url, false, $context);
+            $json = json_decode($output);
+
+            $response = '';
+            if (isset($json[0])) {
+                $response = $json[0]->tag_name;
+                $result = true;
+            }
+        } catch (\Exception $e) {
+            $response = '';
+        }
+        header('Content-Type: application/json;charset=UTF-8');
+        $returnarray = array(
+            'success' => $result,
+            'version' => $response,
+        );
+        die(json_encode($returnarray));
     }
 
     /**

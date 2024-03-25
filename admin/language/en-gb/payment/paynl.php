@@ -15,6 +15,9 @@ $_['tab_paymentmethods'] = 'Payment methods';
 $_['tab_settings'] = 'Settings';
 // Tab General
 $_['entry_status'] = 'Status';
+$_['text_version'] = 'Version';
+$_['text_register'] = 'Not registered with Pay. yet? Sign up ';
+$_['text_here'] = 'here';
 $_['entry_sort_order'] = 'Sort Order';
 $_['text_apitoken'] = 'API token';
 $_['text_serviceid'] = 'Sales location';
@@ -46,6 +49,7 @@ $_['tooltip_pm_show_vat'] = 'Enable to add an extra field to the checkout for cu
 // Tab Settings
 $_['text_orderdesc'] = 'Order description prefix';
 $_['text_testip'] = 'Test IP Address';
+$_['text_testip_desc'] = 'Current IP Address: ';
 $_['text_screen_language'] = 'Language payment screen';
 $_['tooltip_screen_language'] = 'Select which language the Pay. payment screen should be in. Choose "automatic" to match the language of the website.';
 $_['text_nl'] = 'Dutch';
@@ -60,6 +64,7 @@ $_['text_logging'] = 'Logging';
 $_['text_logging_download'] = 'Download logs';
 $_['tooltip_logging'] = 'Log payment processing information';
 // Tab Suggestions
+$_['tab_suggestions'] = 'Suggestions?';
 $_['text_suggestions'] = 'If you have a feature request or other ideas, let us know!<br/>Your submission will be reviewed by our development team.<br/><br/>If needed, we will contact you for further information via the e-mail address provided.<br/>Please note: this form is not for Support requests, please contact <a href="mailto:support@pay.nl" target="_blank">support@pay.nl</a> for this.'; // phpcs:ignore
 $_['text_email_label'] = 'E-mail (optional)';
 $_['text_email_error'] = 'Please fill in a valid e-mail.';

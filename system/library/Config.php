@@ -115,15 +115,24 @@ class PayConfig
     }
 
     /**
-     * @return string
+     * @return string||null
      */
-    public function getObject()
+    public function getVersion()
     {
         $json = file_get_contents(DIR_EXTENSION . 'paynl/install.json');
         $jsonData = json_decode($json, true);
 
+        $version = $jsonData['version'] ?? null;
+        return $version;
+    }
+
+    /**
+     * @return string
+     */
+    public function getObject()
+    {
         $object_string = 'opencart 4 ';
-        $object_string .= $jsonData['version'] ?? '-';
+        $object_string .= $this->getVersion() ?? '-';
         $object_string .= ' | ';
         $object_string .= VERSION ?? '-';
         $object_string .= ' | ';

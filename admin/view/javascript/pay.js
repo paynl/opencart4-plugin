@@ -24,6 +24,49 @@ $(document).ready(function () {
         })
     })
 
+    $("#check_version_submit").click(function (e) {
+        e.preventDefault();
+        var ajaxurl = $('#pay_checkversion_url').val();
+        var data = {
+            'versionCheck' : $('#pay_current_version').val()
+        };
+        $('#paynl_version_check_result').hide();
+        $('#paynl_version_check_loading').css('display', 'block');
+        setTimeout(function () {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    let result = '';
+                    if (!data) {
+                        result = 'Something went wrong, please try again later'
+                    } else {
+                        var newest_version = data.version.substring(1);
+                        var current_version = $('#pay_current_version').val();
+                        if (newest_version > current_version) {
+                            result = 'There is a new version available (' + data.version + ')'
+                        } else {
+                            $('#check_version_submit').hide();
+                            result = 'You are up to date with the latest version'
+                            $('#paynl_version_check_current_version').addClass('versionUpToDate');
+                        }
+                    }
+                    $('#paynl_version_check_result').html(result);
+                    $('#paynl_version_check_result').css('display', 'block');
+                    $('#paynl_version_check_loading').hide();
+                },
+                error: function () {
+                    result = 'Something went wrong, please try again later'
+                    $('#paynl_version_check_result').html(result);
+                    $('#paynl_version_check_result').css('display', 'block');
+                    $('#paynl_version_check_loading').hide();
+                }
+            });
+        }, 750);
+    });
+
     $('#suggestions_form_submit').click(function () {
         $('#email_error').hide()
         $('#message_error').hide()
