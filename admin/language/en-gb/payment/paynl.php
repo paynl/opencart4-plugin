@@ -63,6 +63,8 @@ $_['tooltip_follow_payment'] = 'This will ensure the order is updated with the a
 $_['text_logging'] = 'Logging';
 $_['text_logging_download'] = 'Download logs';
 $_['tooltip_logging'] = 'Log payment processing information';
+$_['text_custom_exchange_url'] = 'Custom exchange URL';
+$_['tooltip_custom_exchange_url'] = 'Use your own exchange-handler. Example: https://www.yourdomain.nl/exchange_handler?action=#action#&order_id=#order_id#';
 // Tab Suggestions
 $_['tab_suggestions'] = 'Suggestions?';
 $_['text_suggestions'] = 'If you have a feature request or other ideas, let us know!<br/>Your submission will be reviewed by our development team.<br/><br/>If needed, we will contact you for further information via the e-mail address provided.<br/>Please note: this form is not for Support requests, please contact <a href="mailto:support@pay.nl" target="_blank">support@pay.nl</a> for this.'; // phpcs:ignore

@@ -141,6 +141,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
+        $data['pay_custom_exchange_url'] = $this->config->get('payment_' . $this->code . '_custom_exchange_url');
 
         // Suggestions
         $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);

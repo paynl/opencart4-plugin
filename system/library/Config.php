@@ -109,6 +109,14 @@ class PayConfig
     /**
      * @return string
      */
+    public function getCustomExchangeURL()
+    {
+        return trim($this->openCart->config->get('payment_' . $this->code . '_custom_exchange_url'));
+    }    
+
+    /**
+     * @return string
+     */
     public function shouldFollowPayment()
     {
         return ($this->openCart->config->get('payment_' . $this->code . '_follow_payment') == 1);

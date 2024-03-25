@@ -369,7 +369,32 @@
                 <div class="col-sm-10">                  
                   <input type="text" class="form-control" name="payment_paynl_order_description" value="{{ pay_order_description }}"/>             
                 </div>
-              </div>      
+              </div>        
+
+              <div class="row mb-3">
+                <label for="payment_paynl_follow_payment" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_follow_payment }}"></span>
+                    {{ text_follow_payment }}
+                  </span>
+                </label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="payment_paynl_follow_payment" value="0"/>
+                    <input type="checkbox" name="payment_paynl_follow_payment" value="1" id="input-status" class="form-check-input"{% if pay_follow_payment == '1' %} checked{% endif %}/>
+                  </div>                  
+                </div>
+              </div>                 
+
+              <br/><br/>
+
+              <div class="form-group">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Advanced settings</h3>
+                </div>
+              </div>  
+
+              <br/>  
 
               <div class="row mb-3">
                 <label for="payment_paynl_test_ip_address" class="col-sm-2 col-form-label">                
@@ -379,11 +404,23 @@
                   </span>
                 </label>
                 <div class="col-sm-10">                  
-                  <input type="text" class="form-control" name="payment_paynl_test_ip_address" value="{{ pay_test_ip_address }}"/>             
+                  <input type="text" class="form-control" name="payment_paynl_test_ip_address" value="{{ pay_test_ip_address }}"/>      
                   <br/>
-                  {{ text_testip_desc }} {{current_ip}}  
+                  {{ text_testip_desc }} {{current_ip}}       
                 </div>
-              </div>         
+              </div>     
+
+              <div class="row mb-3">
+                <label for="payment_paynl_custom_exchange_url" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_custom_exchange_url }}"></span>
+                    {{ text_custom_exchange_url }}
+                  </span>
+                </label>
+                <div class="col-sm-10">                  
+                  <input type="text" class="form-control" name="payment_paynl_custom_exchange_url" value="{{ pay_custom_exchange_url }}"/>     
+                </div>
+              </div>    
 
               <div class="row mb-3">
                 <label for="payment_paynl_logging" class="col-sm-2 col-form-label">                
@@ -408,21 +445,7 @@
                   </div>
                 </div> 
               </div>   
-
-              <div class="row mb-3">
-                <label for="payment_paynl_follow_payment" class="col-sm-2 col-form-label">                
-                  <span class="labelText">
-                    <span class="payTooltip" data-tooltip="{{ tooltip_follow_payment }}"></span>
-                    {{ text_follow_payment }}
-                  </span>
-                </label>
-                <div class="col-sm-10">
-                  <div class="form-check form-switch form-switch-lg">
-                    <input type="hidden" name="payment_paynl_follow_payment" value="0"/>
-                    <input type="checkbox" name="payment_paynl_follow_payment" value="1" id="input-status" class="form-check-input"{% if pay_follow_payment == '1' %} checked{% endif %}/>
-                  </div>                  
-                </div>
-              </div> 
+                     
           </div>
 
           {# Suggestions #}
