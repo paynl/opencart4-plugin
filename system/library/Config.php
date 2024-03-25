@@ -39,6 +39,21 @@ class PayConfig
      */
     public function isTestMode()
     {
+        $ip = $_SERVER["REMOTE_ADDR"];
+        $ipconfig = $this->openCart->config->get('payment_' . $this->code . '_test_ip_address');
+
+        if (!empty($ipconfig)) {
+            $allowed_ips = explode(',', $ipconfig);
+            if (
+                in_array($ip, $allowed_ips) &&
+                filter_var($ip, FILTER_VALIDATE_IP) &&
+                strlen($ip) > 0 &&
+                count($allowed_ips) > 0
+            ) {
+                return true;
+            }
+        }
+
         return ($this->openCart->config->get('payment_' . $this->code . '_testmode') == 1);
     }
 
@@ -72,6 +87,15 @@ class PayConfig
     public function isLoggingEnabled()
     {
         return ($this->openCart->config->get('payment_' . $this->code . '_logging') ?? 1);
+    }
+
+    /**
+     * @return string
+     */
+    public function getOrderDescription()
+    {   
+        $description = $this->openCart->config->get('payment_' . $this->code . '_order_description');
+        return (!empty($description)) ? $description . ' ' : 'Order ';
     }
 
     /**

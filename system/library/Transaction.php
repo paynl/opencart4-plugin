@@ -148,7 +148,7 @@ class PayTransaction
         $request = new TransactionCreateRequest();
         $request->setConfig($this->payConfig->getConfig());
         $request->setServiceId($this->payConfig->getServiceId());
-        $request->setDescription('Order ' . $order_info['order_id']);
+        $request->setDescription($this->payConfig->getOrderDescription() . $order_info['order_id']);
         $request->setReference($order_info['order_id']);
 
         $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));

@@ -339,7 +339,31 @@
                       </select>
                   </div>                 
                 </div>
-              </div>                
+              </div>   
+
+              <div class="row mb-3">
+                <label for="payment_paynl_order_description" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_orderdesc }}"></span>
+                    {{ text_orderdesc }}
+                  </span>
+                </label>
+                <div class="col-sm-10">                  
+                  <input type="text" class="form-control" name="payment_paynl_order_description" value="{{ pay_order_description }}"/>             
+                </div>
+              </div>      
+
+              <div class="row mb-3">
+                <label for="payment_paynl_test_ip_address" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_testip }}"></span>
+                    {{ text_testip }}
+                  </span>
+                </label>
+                <div class="col-sm-10">                  
+                  <input type="text" class="form-control" name="payment_paynl_test_ip_address" value="{{ pay_test_ip_address }}"/>             
+                </div>
+              </div>         
 
               <div class="row mb-3">
                 <label for="payment_paynl_logging" class="col-sm-2 col-form-label">                

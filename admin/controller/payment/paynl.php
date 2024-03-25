@@ -133,6 +133,8 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['countries'] = $this->model_localisation_country->getCountries();
 
         // Settings
+        $data['pay_order_description'] = $this->config->get('payment_' . $this->code . '_order_description');
+        $data['pay_test_ip_address'] = $this->config->get('payment_' . $this->code . '_test_ip_address');
         $data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
         $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
