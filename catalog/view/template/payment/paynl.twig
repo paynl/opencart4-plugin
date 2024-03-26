@@ -1,18 +1,20 @@
 <fieldset>
-    <p><b>{{ description }}</b></p>
+    <div style="font-weight: bold; font-size: 16px;">You have selected: {{ paymentMethodName }}</div>    
     <form id="form-paynl">
         <div class="row">
         <input type="hidden" name="order_id" value="{{ order_id }}" />
         <input type="hidden" name="coupon" value="{{ coupon }}" />
         <input type="hidden" name="voucher" value="{{ voucher }}" />
-        {% if showIssuers == '1' %} 
-            <div class="mb-3 required">
-                <select name="payIssuer" class="form-select">
-                    <option value="0">Choose your bank</option>
+        {% if (showIssuers == '1' or showIssuers == '2') %} 
+            <p><b>{{ select_issuer_text }}</b></p>
+            <div class="mb-3 {% if showIssuers == '2' %}required{% endif %}">
+                <select name="payIssuer" class="form-select {% if showIssuers == '2' %}required{% endif %}">
+                    <option value="0"></option>
                     {% for issuer in issuers %}
                         <option value="{{ issuer['id'] }}">{{ issuer['name'] }}</option>
                     {% endfor %}
                 </select>
+                <div id="error-payDOB" class="invalid-feedback">Please choose your bank.</div>
             </div>
         {% endif %}
         {% if (showDOB == '1' or showDOB == '2') %} 
@@ -46,9 +48,10 @@
         e.preventDefault();
         var element = this;
         var errors = false;
-        $(this).find('input').each(function(){
-            $(this).parent().find('.invalid-feedback').hide();
-            if($(this).hasClass('required') && !$(this).val()){
+
+        $('.invalid-feedback').hide();        
+        $(this).find('input, select').each(function(){            
+            if($(this).hasClass('required') && (!$(this).val() || $(this).val() == 0)){
                 $(this).parent().find('.invalid-feedback').show();
                 errors = true;
             }
