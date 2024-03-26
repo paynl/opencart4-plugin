@@ -6,6 +6,7 @@ require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use PayNL\Sdk\Config\Config;
+use PayNL\Sdk\Model\Request\ServiceGetConfigRequest;
 
 class PayConfig
 {
@@ -23,14 +24,21 @@ class PayConfig
     }
 
     /**
+     * @param boolean $useCore
      * @return Config
      * @throws Exception
      */
-    public function getConfig()
+    public function getConfig($useCore = false)
     {
         $config = new Config();
         $config->setUsername($this->getTokencode());
         $config->setPassword($this->getApiToken());
+
+        $core = $this->getCore();
+        if (!empty($core) && $useCore === true) {
+            $config->setCore($core);
+        }
+
         return $config;
     }
 
@@ -64,6 +72,19 @@ class PayConfig
     public function getServiceId()
     {
         return $this->openCart->config->get('payment_' . $this->code . '_serviceid');
+    }
+
+    /**
+     * @return string
+     */
+    public function getCore()
+    {
+        $core = $this->openCart->config->get('payment_' . $this->code . '_failover_gateway');
+        if ($core == 'custom') {
+            return $this->openCart->config->get('payment_' . $this->code . '_custom_gateway');
+        } elseif (!empty($core)) {
+            return 'https://rest.' . $core;
+        }
     }
 
     /**
@@ -106,5 +127,14 @@ class PayConfig
         $object_string .= substr(phpversion(), 0, 3);
 
         return $object_string;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTguList()
+    {
+        $config = (new ServiceGetConfigRequest($this->getServiceId()))->setConfig($this->getConfig())->start();
+        return $config->getTguList() ?? [];
     }
 }

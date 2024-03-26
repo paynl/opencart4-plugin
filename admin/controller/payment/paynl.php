@@ -63,6 +63,10 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
 
+        $data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
+        $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
+        $data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
+
         // Paymentmethods
         $gateways = [];
         try {
