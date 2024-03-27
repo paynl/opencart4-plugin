@@ -61,6 +61,10 @@ $_['tooltip_orderdesc'] = 'Prefix the order description with a custom word';
 $_['tooltip_testip'] = 'Forces testmode on these IP addresses, separate IP\'s by comma\'s for multiple IP\'s';
 $_['tooltip_follow_payment'] = 'This will ensure the order is updated with the actual payment method used to complete the order. This can differ from the payment method initially selected.';
 $_['text_logging'] = 'Logging';
+$_['text_logging_all'] = 'Everything is logged, including Critical, Notice, Info and Debug';
+$_['text_critical_notice'] = 'Only Critical errors and Notices are logged';
+$_['text_critical_only'] = 'Only Critical errors are logged';
+$_['text_no_logging'] = 'No logging';
 $_['text_logging_download'] = 'Download logs';
 $_['tooltip_logging'] = 'Log payment processing information';
 $_['text_custom_exchange_url'] = 'Custom exchange URL';
@@ -109,3 +113,5 @@ $_['text_capture_desc'] = 'Amount to capture';
 $_['text_capture_confirm'] = 'Are you sure want to capture this amount: %amount% ?';
 $_['text_capture_success'] = 'Pay. captured %amount% successfully!';
 $_['text_capture_error'] = 'Pay. couldn\'t capture, please try again later.';
+
+$_['text_error_nan'] = 'Amount must be a number higher than zero.';

@@ -36,13 +36,13 @@ class Exchange extends \Opencart\System\Engine\Controller
      */
     public function exchange()
     {
-        $transactionId = $_REQUEST['order_id'] ?? null;
-        $orderId = $_REQUEST['extra1'] ?? null;
-        $action = $_REQUEST['action'] ?? null;
+        $transactionId = $this->request->get['order_id'] ?? null;
+        $orderId = $this->request->get['extra1'] ?? null;
+        $action = $this->request->get['action'] ?? null;
 
         if ($action == 'pending') {
             $message = 'ignoring PENDING';
-            $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
+            $this->helper->logDebug('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
             die("TRUE|" . $message);
         }
 
@@ -55,7 +55,7 @@ class Exchange extends \Opencart\System\Engine\Controller
 
         try {
             $message = $this->payTransaction->processTransaction($transactionId, $orderId, $action);
-            $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
+            $this->helper->logDebug('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
             if ($action == 'new_ppt') {
                 $this->payTransaction->removeProcessing($transactionId);
             }
@@ -66,7 +66,7 @@ class Exchange extends \Opencart\System\Engine\Controller
             $message = "Unknown error: " . $e->getMessage();
         }
 
-        $this->helper->log('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
+        $this->helper->logNotice('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
         die("FALSE|" . $message);
     }
 }

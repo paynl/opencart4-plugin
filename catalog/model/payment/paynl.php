@@ -83,7 +83,7 @@ class Paynl extends \Opencart\System\Engine\Model
                 return (int) $a['sort'] - (int) $b['sort'];
             });
         } catch (\Exception $e) {
-            $this->helper->log('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
+            $this->helper->logCritical('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
         }
 
         if (!empty($option_data)) {

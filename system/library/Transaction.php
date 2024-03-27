@@ -48,7 +48,7 @@ class PayTransaction
     public function getTransactionStatus($transactionId)
     {
         $transactionStatusRequest = new TransactionStatusRequest($transactionId);
-        $transactionStatusRequest->setConfig($this->payConfig->getConfig());
+        $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
         $transaction = $transactionStatusRequest->start();
         return $transaction;
     }
@@ -113,7 +113,7 @@ class PayTransaction
      */
     public function getRealPaymentMethod($orderId)
     {
-        $payment_profile_id = $_REQUEST['payment_profile_id'] ?? null;
+        $payment_profile_id = $this->openCart->request->get['payment_profile_id'] ?? null;
 
         $this->openCart->load->model('checkout/order');
         $order = $this->openCart->model_checkout_order->getOrder($orderId);
@@ -146,7 +146,7 @@ class PayTransaction
     public function startTransaction(array $order_info, array $options)
     {
         $request = new TransactionCreateRequest();
-        $request->setConfig($this->payConfig->getConfig());
+        $request->setConfig($this->payConfig->getConfig(true));
         $request->setServiceId($this->payConfig->getServiceId());
         $request->setDescription($this->payConfig->getOrderDescription() . $order_info['order_id']);
         $request->setReference($order_info['order_id']);
@@ -213,7 +213,7 @@ class PayTransaction
             $devAddress->setStreetNumber($arrStreet['number']);
             $devAddress->setZipCode($address['postcode'] ?? '');
             $devAddress->setCity($address['city'] ?? '');
-            $devAddress->setCountryCode($address['country'] ?? '');
+            $devAddress->setCountryCode($address['iso_code_2'] ?? '');
             $order->setDeliveryAddress($devAddress);
 
             $invAddress = new \PayNL\Sdk\Model\Address();
@@ -222,7 +222,7 @@ class PayTransaction
             $invAddress->setStreetNumber($arrStreet['number']);
             $invAddress->setZipCode($address['postcode'] ?? '');
             $invAddress->setCity($address['city'] ?? '');
-            $invAddress->setCountryCode($address['country'] ?? '');
+            $invAddress->setCountryCode($address['iso_code_2'] ?? '');
             $order->setInvoiceAddress($invAddress);
         }
 
