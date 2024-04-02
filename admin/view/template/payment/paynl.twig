@@ -37,6 +37,34 @@
                 </div>
               </div>   
 
+              {% if false %}
+                <div class="row mb-3">
+                  <label for="input-status" class="col-sm-2 col-form-label">{{ text_version }}</label>
+                  <div class="col-sm-10">
+                    <div class="version">
+                      <input id="pay_checkversion_url" type="hidden" class="form-control" name="pay_checkversion_url" value="{{ pay_checkversion_url }}"/>
+                        <input id="pay_current_version" type="hidden" class="form-control" name="pay_current_version" value="{{ pay_current_version }}"/>
+                        <span id="paynl_version_check_current_version">{{ pay_current_version }}</span>
+                        <a id="check_version_submit" class="btn btn-primary" target="_BLANK">Check Version</a>
+                        <span id="paynl_version_check">                 
+                            <span id="paynl_version_check_loading" class="payHide">Loading...</span>         
+                            <span id="paynl_version_check_result" class="payHide"></span>
+                        </span>
+                    </div>
+                  </div>
+                </div>  
+              {% endif %}
+
+              {% if apitoken is empty %}
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">               
+                    </label>
+                    <div class="col-sm-10">                  
+                      {{ text_register }} <a href="https://signup.pay.nl/" target="_BLANK">{{ text_here }}</a>!
+                    </div>
+                  </div> 
+              {% endif %}
+
               <div class="row mb-3">
                 <label for="payment_paynl_tokencode" class="col-sm-2 col-form-label">                
                   <span class="labelText">
@@ -166,12 +194,46 @@
                         </label>
                         <div class="col-sm-10">                  
                           <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_name" value="{{ paymentmethod.name|e }}"/>            
+                          {% if languages|length > 1 %}
+                            <br/>
+                            <div class="translations">
+                                <div class="show_translations">{{ text_pm_translations }} &nbsp; <i class="fa-solid fa-chevron-down"></i></div>       
+                                    <div class="language-options hidden">    
+                                        <br>
+                                        {% for language in languages %}                                                      
+                                          <label class="control-label col-lg-2 align-left" style="padding:0;">{{ language.name|e }}</label>
+                                          <div class="col-lg-10">
+                                            <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_name_{{ language.code|e }}" value="{{ paymentmethod.name_translations[language.code]|e }}"/>                       
+                                          </div>   
+                                        {% endfor %}                                                                    
+                                        <div style="clear:both"></div>                                
+                                    <br>
+                                </div>
+                            </div>
+                          {% endif %}
                         </div>
                       </div>   
                       <div class="row mb-3">
                         <label for="payment_paynl_paymentmethod_{{ id }}_description" class="col-sm-2 col-form-label">{{ text_pm_desc }}</label>
                         <div class="col-sm-10">                  
-                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description" value="{{ paymentmethod.description|e }}"/>            
+                          <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description" value="{{ paymentmethod.description|e }}"/>
+                          {% if languages|length > 1 %}
+                            <br/>
+                            <div class="translations">
+                                <div class="show_translations">{{ text_pm_translations }} &nbsp; <i class="fa-solid fa-chevron-down"></i></div>                            
+                                    <div class="language-options hidden">   
+                                        <br> 
+                                        {% for language in languages %}                                                      
+                                          <label class="control-label col-lg-2 align-left" style="padding:0;">{{ language.name|e }}</label>
+                                          <div class="col-lg-10">
+                                            <input type="text" class="form-control" name="payment_paynl_paymentmethod_{{ id }}_description_{{ language.code|e }}" value="{{ paymentmethod.description_translations[language.code]|e }}"/>                       
+                                          </div>   
+                                        {% endfor %}                                                                    
+                                        <div style="clear:both"></div>                                
+                                    <br>
+                                </div>
+                            </div>
+                          {% endif %}
                         </div>
                       </div> 
                       <div class="row mb-3">
@@ -328,7 +390,70 @@
                       </select>
                   </div>                 
                 </div>
-              </div>                
+              </div>   
+
+              <div class="row mb-3">
+                <label for="payment_paynl_order_description" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_orderdesc }}"></span>
+                    {{ text_orderdesc }}
+                  </span>
+                </label>
+                <div class="col-sm-10">                  
+                  <input type="text" class="form-control" name="payment_paynl_order_description" value="{{ pay_order_description }}"/>             
+                </div>
+              </div>        
+
+              <div class="row mb-3">
+                <label for="payment_paynl_follow_payment" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_follow_payment }}"></span>
+                    {{ text_follow_payment }}
+                  </span>
+                </label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="payment_paynl_follow_payment" value="0"/>
+                    <input type="checkbox" name="payment_paynl_follow_payment" value="1" id="input-status" class="form-check-input"{% if pay_follow_payment == '1' %} checked{% endif %}/>
+                  </div>                  
+                </div>
+              </div>                 
+
+              <br/><br/>
+
+              <div class="form-group">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Advanced settings</h3>
+                </div>
+              </div>  
+
+              <br/>  
+
+              <div class="row mb-3">
+                <label for="payment_paynl_test_ip_address" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_testip }}"></span>
+                    {{ text_testip }}
+                  </span>
+                </label>
+                <div class="col-sm-10">                  
+                  <input type="text" class="form-control" name="payment_paynl_test_ip_address" value="{{ pay_test_ip_address }}"/>      
+                  <br/>
+                  {{ text_testip_desc }} {{current_ip}}       
+                </div>
+              </div>     
+
+              <div class="row mb-3">
+                <label for="payment_paynl_custom_exchange_url" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_custom_exchange_url }}"></span>
+                    {{ text_custom_exchange_url }}
+                  </span>
+                </label>
+                <div class="col-sm-10">                  
+                  <input type="text" class="form-control" name="payment_paynl_custom_exchange_url" value="{{ pay_custom_exchange_url }}"/>     
+                </div>
+              </div>    
 
               <div class="row mb-3">
                 <label for="payment_paynl_logging" class="col-sm-2 col-form-label">                
@@ -356,26 +481,84 @@
                   </div>
                 </div> 
               </div>   
-
-              <div class="row mb-3">
-                <label for="payment_paynl_follow_payment" class="col-sm-2 col-form-label">                
-                  <span class="labelText">
-                    <span class="payTooltip" data-tooltip="{{ tooltip_follow_payment }}"></span>
-                    {{ text_follow_payment }}
-                  </span>
-                </label>
-                <div class="col-sm-10">
-                  <div class="form-check form-switch form-switch-lg">
-                    <input type="hidden" name="payment_paynl_follow_payment" value="0"/>
-                    <input type="checkbox" name="payment_paynl_follow_payment" value="1" id="input-status" class="form-check-input"{% if pay_follow_payment == '1' %} checked{% endif %}/>
-                  </div>                  
-                </div>
-              </div> 
-
+                     
           </div>
+
+          {# Suggestions #}
+          <div id="tab-suggestions" class="tab-pane">            
+            <input type="hidden" id="pay_suggestions_url" value="{{ pay_suggestions_url }}"/>
+            <input type="hidden" id="pay_plugin_version" value="{{ pay_plugin_version }}"/>
+            <div class="form-group">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-envelope"></i> Suggestions?</h3>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2">
+                    <p>
+                        {{ text_suggestions}}
+                    </p>
+                </div>
+            </div>
+            <br/>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="suggestions_form_email" style="width: auto;">{{ text_email_label }}</label>
+                <div id="email_error" class="text-danger col-sm-10" style="display: none">{{ text_email_error }}</div>
+                <div class="col-sm-10">
+                    <input id="suggestions_form_url" type="hidden" class="form-control" name="suggestions_form_url" value="{{ action }}"/>
+                    <input id="suggestions_form_plugin_version" type="hidden" class="form-control" name="suggestions_plugin_version" value="{{ version }}"/>
+                    <input id="suggestions_form_email" type="text" class="form-control" name="suggestions_form_email"/>
+                </div>
+            </div>
+            <br/>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="message" style="width: auto;">{{ text_message_label }}</label>
+                <div id="message_error" class="text-danger col-sm-10" style="display: none">{{ text_message_error }}</div>
+                <div class="col-sm-10">
+                    <textarea id="suggestions_form_message" class="form-control" name="suggestions_form_message" placeholder="{{ text_message_placeholder }}" cols="80" rows="10"></textarea>
+                </div>
+            </div>
+            <br/>
+            <div class="form-group">
+                <button form="suggestions_form" title="Submit" id="suggestions_form_submit" class="btn btn-primary">{{ text_suggestions_submit }}</button>
+            </div>         
+          </div> 
+
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="suggestions_form_success" tabindex="-1" role="dialog" aria-labelledby="suggestions_form_success_label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{ text_suggestions_success_modal }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="suggestions_form_fail" tabindex="-1" role="dialog" aria-labelledby="suggestions_form_fail_label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>{{ text_suggestions_fail_modal }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{ footer }}

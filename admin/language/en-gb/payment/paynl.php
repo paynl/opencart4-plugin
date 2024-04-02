@@ -15,6 +15,9 @@ $_['tab_paymentmethods'] = 'Payment methods';
 $_['tab_settings'] = 'Settings';
 // Tab General
 $_['entry_status'] = 'Status';
+$_['text_version'] = 'Version';
+$_['text_register'] = 'Not registered with Pay. yet? Sign up ';
+$_['text_here'] = 'here';
 $_['entry_sort_order'] = 'Sort Order';
 $_['text_apitoken'] = 'API token';
 $_['text_serviceid'] = 'Sales location';
@@ -35,6 +38,7 @@ $_['text_pm_show_issuers'] = 'Show bank selection';
 $_['text_pm_show_dob'] = 'Show Date of Birth Field';
 $_['text_pm_show_coc'] = 'Show COC Field';
 $_['text_pm_show_vat'] = 'Show VAT Field';
+$_['text_pm_translations'] = 'Translations';
 $_['tooltip_pm_name'] = 'The name of the payment method as shown in the checkout.';
 $_['tooltip_pm_min'] = 'Minimum order amount for this payment method, leave blank for no limit.';
 $_['tooltip_pm_max'] = 'Maximum order amount for this payment method, leave blank for no limit.';
@@ -43,6 +47,9 @@ $_['tooltip_pm_show_dob'] = 'A date of birth is mandatory for most Buy Now Pay L
 $_['tooltip_pm_show_coc'] = 'Enable to add an extra field to the checkout for customers to enter their COC number';
 $_['tooltip_pm_show_vat'] = 'Enable to add an extra field to the checkout for customers to enter their VAT number';
 // Tab Settings
+$_['text_orderdesc'] = 'Order description prefix';
+$_['text_testip'] = 'Test IP Address';
+$_['text_testip_desc'] = 'Current IP Address: ';
 $_['text_screen_language'] = 'Language payment screen';
 $_['tooltip_screen_language'] = 'Select which language the Pay. payment screen should be in. Choose "automatic" to match the language of the website.';
 $_['text_nl'] = 'Dutch';
@@ -50,6 +57,8 @@ $_['text_en'] = 'English';
 $_['text_de'] = 'German';
 $_['text_fr'] = 'French';
 $_['text_follow_payment'] = 'Follow payment method';
+$_['tooltip_orderdesc'] = 'Prefix the order description with a custom word';
+$_['tooltip_testip'] = 'Forces testmode on these IP addresses, separate IP\'s by comma\'s for multiple IP\'s';
 $_['tooltip_follow_payment'] = 'This will ensure the order is updated with the actual payment method used to complete the order. This can differ from the payment method initially selected.';
 $_['text_logging'] = 'Logging';
 $_['text_logging_all'] = 'Everything is logged, including Critical, Notice, Info and Debug';
@@ -58,6 +67,19 @@ $_['text_critical_only'] = 'Only Critical errors are logged';
 $_['text_no_logging'] = 'No logging';
 $_['text_logging_download'] = 'Download logs';
 $_['tooltip_logging'] = 'Log payment processing information';
+$_['text_custom_exchange_url'] = 'Custom exchange URL';
+$_['tooltip_custom_exchange_url'] = 'Use your own exchange-handler. Example: https://www.yourdomain.nl/exchange_handler?action=#action#&order_id=#order_id#';
+// Tab Suggestions
+$_['tab_suggestions'] = 'Suggestions?';
+$_['text_suggestions'] = 'If you have a feature request or other ideas, let us know!<br/>Your submission will be reviewed by our development team.<br/><br/>If needed, we will contact you for further information via the e-mail address provided.<br/>Please note: this form is not for Support requests, please contact <a href="mailto:support@pay.nl" target="_blank">support@pay.nl</a> for this.'; // phpcs:ignore
+$_['text_email_label'] = 'E-mail (optional)';
+$_['text_email_error'] = 'Please fill in a valid e-mail.';
+$_['text_message_label'] = 'Message';
+$_['text_message_error'] = 'Please fill in your message.';
+$_['text_message_placeholder'] = 'Leave your suggestions here…';
+$_['text_suggestions_submit'] = 'Submit';
+$_['text_suggestions_success_modal'] = 'Sent! Thank you for your contribution.';
+$_['text_suggestions_fail_modal'] = 'E-mail could not be sent, please try again later.';
 // Fields
 $_['text_no'] = 'No';
 $_['text_yes'] = 'Yes';

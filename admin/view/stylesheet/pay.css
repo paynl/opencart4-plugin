@@ -108,3 +108,52 @@
     visibility: visible;
     opacity: 1;
 }
+
+.modal button.close {
+    border: none;
+    font-size: 20px;
+    background: transparent;
+    align-self: center;
+    margin-left: auto;
+}
+
+.modal .modal-body {
+    text-align: center;
+}
+
+.translations .hidden{
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.translations .show_translations{
+    width: auto;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.versionUpToDate {
+    color: white !important;
+    background-color: #5aa70d;
+    font-weight: bold;
+    border: 0;
+    padding: 5px 9px !important;
+    border-radius: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+#check_version_submit {
+    display: inline-block;
+    margin-left: 15px
+}
+
+#paynl_version_check {
+    display: inline-block;
+    margin-left: 12px;
+}
+
+.payHide {
+    display: none;
+}

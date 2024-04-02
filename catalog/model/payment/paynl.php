@@ -56,14 +56,20 @@ class Paynl extends \Opencart\System\Engine\Model
             foreach ($payPaymentMethods as $key => $method) {
                 if ($this->checkPaymentMethod($method) || $ignoreChecks) {
                     $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
+                    $nameTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $this->config->get('config_language'));
                     $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
+                    $descriptionTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $this->config->get('config_language'));
                     $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
                     $sort = (!empty($sortSetting)) ? $sortSetting : $key;
+
+                    $name = (!empty($nameSetting)) ? $nameSetting : $method->getName();
+                    $description = (!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription();
+
                     $option_data[$sort] = [
                         'code' => $this->code . '.' . $sort,
                         'paymentOptionId' => $method->getId(),
-                        'name' => (!empty($nameSetting)) ? $nameSetting : $method->getName(),
-                        'description' => (!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription(),
+                        'name' => (!empty($nameTranslatedSetting)) ? $nameTranslatedSetting : $name,
+                        'description' => (!empty($descriptionTranslatedSetting)) ? $descriptionTranslatedSetting : $description,
                         'sort' => (!empty($sortSetting)) ? $sortSetting : $key,
                         'issuers' => $method->getOptions() ?? null,
                         'showIssuers' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers'),

@@ -62,6 +62,11 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['serviceid'] = $this->config->get('payment_' . $this->code . '_serviceid');
         $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
         $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
+        $data['pay_checkversion_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|version_check', 'user_token=' . $this->session->data['user_token']);
+        $data['pay_current_version'] = $this->payConfig->getVersion();
+
+        $this->load->model('localisation/language');
+		$data['languages'] = $this->model_localisation_language->getLanguages();
 
         $data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
         $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
@@ -95,6 +100,14 @@ class Paynl extends \Opencart\System\Engine\Controller
                 $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
                 $gateways[$method->getId()]['image'] = $image;
 
+                $gateways[$method->getId()]['name_translations'] = [];
+                $gateways[$method->getId()]['description_translations'] = [];    
+                
+                foreach ($this->model_localisation_language->getLanguages() as $language) {
+                    $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
+                    $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
+                }      
+
                 if ($this->paymentMethods->showIssuersField($method->getId())) {
                     $gateways[$method->getId()]['showIssuersField'] = true;
                     $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
@@ -126,6 +139,8 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['countries'] = $this->model_localisation_country->getCountries();
 
         // Settings
+        $data['pay_order_description'] = $this->config->get('payment_' . $this->code . '_order_description');
+        $data['pay_test_ip_address'] = $this->config->get('payment_' . $this->code . '_test_ip_address');
         $data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
         $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
@@ -136,7 +151,12 @@ class Paynl extends \Opencart\System\Engine\Controller
             $this->helper::LOG_ONLY_CRITICAL => $this->language->get('text_critical_only'), 
             $this->helper::LOG_NONE => $this->language->get('text_no_logging')
         ];
+        $data['pay_custom_exchange_url'] = $this->config->get('payment_' . $this->code . '_custom_exchange_url');
 
+        // Suggestions
+        $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
+        $data['pay_plugin_version'] = $this->payConfig->getObject();
+        
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
@@ -391,5 +411,100 @@ class Paynl extends \Opencart\System\Engine\Controller
         }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
+    }
+
+    /**
+     * @return void
+     */
+    public function version_check()
+    {
+        $version = $this->request->post['versionCheck']; 
+        $result = false;    
+        $url = 'https://api.github.com/repos/paynl/opencart3-plugin/releases';
+        $options = array(
+            'http' => array(
+                'method' => 'GET',
+                'header' => 'User-Agent:' . $_SERVER['HTTP_USER_AGENT']));
+
+        $context = stream_context_create($options);
+
+        try {
+            $output = file_get_contents($url, false, $context);
+            $json = json_decode($output);
+
+            $response = '';
+            if (isset($json[0])) {
+                $response = $json[0]->tag_name;
+                $result = true;
+            }
+        } catch (\Exception $e) {
+            $response = '';
+        }
+        header('Content-Type: application/json;charset=UTF-8');
+        $returnarray = array(
+            'success' => $result,
+            'version' => $response,
+        );
+        die(json_encode($returnarray));
+    }
+
+    /**
+     * @return void
+     */
+    public function suggestions()
+    {
+        try {
+
+            $suggestions_form_message = $this->request->post['message']; 
+            $suggestions_form_email = $this->request->post['email'];
+            $suggestions_form_plugin_version = $this->request->post['pluginverison'];
+    
+            $pluginVersion = strtolower($suggestions_form_plugin_version);
+            $phpVersion = phpversion();
+            $message = isset($suggestions_form_message) ? nl2br($suggestions_form_message) : null;
+
+            $email = null;
+            if (isset($suggestions_form_email) && !empty($suggestions_form_email)) {
+                $email = '<b>Client Email:</b><span style="width: 100%;box-sizing: border-box; display:inline-block; padding: 10px; border:1px solid #cccccc;">' . strtolower($suggestions_form_email) . '</span><br/><br/>'; // phpcs:ignore
+            }
+
+            if (empty($message)) {
+                throw new Exception('Empty message');
+            }
+
+            $to = 'webshop@pay.nl';
+            $subject = 'Feature Request Opencart4';
+            $body = '
+            <table role="presentation" style="margin-top:50px; margin-bottom:50px; width:100%;border-collapse:collapse;border:0;border-spacing:0;background:#ffffff;">
+                <tr>
+                    <td align="center" style="padding:0;">
+                        <table role="presentation" style="width:600px;border-collapse:collapse;border:1px solid #cccccc;border-spacing:0;text-align:left;">
+                            <tr>
+                                <td style="padding:25px;">
+                                    <h1 style="font-size:24px;margin:0 0 20px 0;font-family:Arial,sans-serif;">Pay. Suggestion</h1>
+                                    <p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">
+                                        Pay. object: ' . $pluginVersion . '.<br/><br/>
+                                        ' . $email . '
+                                        <b>Message:</b>
+                                        <span style="width: 100%;box-sizing: border-box; display:inline-block; padding: 10px; border:1px solid #cccccc;">' . $message . '</span>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            ';
+            $headers = "Content-Type: text/html; charset=UTF-8";
+            mail($to, $subject, $body, $headers);
+            $result = true;
+        } catch (Exception $e) {
+            $result = false;
+        }
+        header('Content-Type: application/json;charset=UTF-8');
+        $returnarray = array(
+            'success' => $result
+        );
+        die(json_encode($returnarray));
     }
 }

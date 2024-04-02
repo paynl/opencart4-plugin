@@ -47,6 +47,21 @@ class PayConfig
      */
     public function isTestMode()
     {
+        $ip = $_SERVER["REMOTE_ADDR"];
+        $ipconfig = $this->openCart->config->get('payment_' . $this->code . '_test_ip_address');
+
+        if (!empty($ipconfig)) {
+            $allowed_ips = explode(',', $ipconfig);
+            if (
+                in_array($ip, $allowed_ips) &&
+                filter_var($ip, FILTER_VALIDATE_IP) &&
+                strlen($ip) > 0 &&
+                count($allowed_ips) > 0
+            ) {
+                return true;
+            }
+        }
+
         return ($this->openCart->config->get('payment_' . $this->code . '_testmode') == 1);
     }
 
@@ -98,10 +113,27 @@ class PayConfig
     /**
      * @return string
      */
+    public function getOrderDescription()
+    {   
+        $description = $this->openCart->config->get('payment_' . $this->code . '_order_description');
+        return (!empty($description)) ? $description . ' ' : 'Order ';
+    }
+
+    /**
+     * @return string
+     */
     public function getScreenLanguage()
     {
         return $this->openCart->config->get('payment_' . $this->code . '_screen_language');
     }
+
+    /**
+     * @return string
+     */
+    public function getCustomExchangeURL()
+    {
+        return trim($this->openCart->config->get('payment_' . $this->code . '_custom_exchange_url'));
+    }    
 
     /**
      * @return string
@@ -112,15 +144,24 @@ class PayConfig
     }
 
     /**
-     * @return string
+     * @return string||null
      */
-    public function getObject()
+    public function getVersion()
     {
         $json = file_get_contents(DIR_EXTENSION . 'paynl/install.json');
         $jsonData = json_decode($json, true);
 
+        $version = $jsonData['version'] ?? null;
+        return $version;
+    }
+
+    /**
+     * @return string
+     */
+    public function getObject()
+    {
         $object_string = 'opencart 4 ';
-        $object_string .= $jsonData['version'] ?? '-';
+        $object_string .= $this->getVersion() ?? '-';
         $object_string .= ' | ';
         $object_string .= VERSION ?? '-';
         $object_string .= ' | ';

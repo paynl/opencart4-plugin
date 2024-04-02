@@ -46,9 +46,19 @@ class Exchange extends \Opencart\System\Engine\Controller
             die("TRUE|" . $message);
         }
 
+        if ($action == 'new_ppt') {
+            $processing = $this->payTransaction->checkProcessing($transactionId);
+            if (!empty($processing)) {
+                die('FALSE| Already Processing payment');
+            }
+        }
+
         try {
             $message = $this->payTransaction->processTransaction($transactionId, $orderId, $action);
             $this->helper->logDebug('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
+            if ($action == 'new_ppt') {
+                $this->payTransaction->removeProcessing($transactionId);
+            }
             die("TRUE|" . $message);
         } catch (PayException $e) {
             $message = "Api error: " . $e->getMessage();

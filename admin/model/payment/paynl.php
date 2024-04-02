@@ -30,6 +30,14 @@ class Paynl extends \Opencart\System\Engine\Model
             `created_at` datetime NOT NULL DEFAULT current_timestamp(),
             PRIMARY KEY (`id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
+
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "pay_processing` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `payOrderId` varchar(255) DEFAULT NULL,           
+            `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+            PRIMARY KEY (`id`),
+            UNIQUE (`payOrderId`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
     }
 
     /**

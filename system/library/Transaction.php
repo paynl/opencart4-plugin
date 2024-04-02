@@ -148,11 +148,16 @@ class PayTransaction
         $request = new TransactionCreateRequest();
         $request->setConfig($this->payConfig->getConfig(true));
         $request->setServiceId($this->payConfig->getServiceId());
-        $request->setDescription('Order ' . $order_info['order_id']);
+        $request->setDescription($this->payConfig->getOrderDescription() . $order_info['order_id']);
         $request->setReference($order_info['order_id']);
 
         $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));
-        $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
+        
+        $exchange_url = $this->payConfig->getCustomExchangeURL();
+        if (empty($exchange_url)) {
+            $exchange_url = $this->openCart->url->link('extension/paynl/payment/exchange.exchange');
+        }
+        $request->setExchangeUrl($exchange_url);
 
         $request->setAmount($order_info['total']);
         $request->setCurrency($order_info['currency_code']);
@@ -362,5 +367,38 @@ class PayTransaction
         $request->setConfig($this->payConfig->getConfig());
         $request->setAmount($amount);
         $request->start();
+    }
+
+    /**
+     * @param $payOrderId
+     * @return array
+     */
+    public function checkProcessing($payOrderId)
+    {
+        $result = null;
+        try {
+            $query = "SELECT * FROM `" . DB_PREFIX . "pay_processing` WHERE `payOrderId` = '" . $payOrderId . "' AND created_at > date_sub('" . date('Y-m-d H:i:s') . "', interval 1 minute) ORDER BY created_at DESC;";
+            $dbTransaction = $this->openCart->db->query($query);
+            if ($dbTransaction && !empty($dbTransaction->num_rows) && $dbTransaction->num_rows) {
+                $result = $dbTransaction->rows ?? $dbTransaction->row;
+            }        
+            if (empty($result)) {
+                $query = "INSERT INTO `" . DB_PREFIX . "pay_processing`(`payOrderId`) VALUES ('" . $payOrderId . "') ON DUPLICATE KEY UPDATE created_at='" . date('Y-m-d H:i:s') . "';";
+                $this->openCart->db->query($query);
+            }
+        } catch (\Exception $e) {
+            $result = null;
+        }
+        return is_array($result) ? $result : array();
+    }
+
+    /**
+     * @param $payOrderId
+     * @return void
+     */
+    public function removeProcessing($payOrderId)
+    {     
+        $query = "DELETE FROM `" . DB_PREFIX . "pay_processing` WHERE `payOrderId` = '" . $payOrderId . "';";
+        $this->openCart->db->query($query);
     }
 }
