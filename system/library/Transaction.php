@@ -293,7 +293,6 @@ class PayTransaction
     {
         $query = "INSERT INTO `" . DB_PREFIX . "pay_transactions`(`order_id`, `transaction_id`, `amount`) VALUES ('" . $order_id . "','" . $transaction_id . "'," . $amount . ")  ON DUPLICATE KEY UPDATE transaction_id='" . $transaction_id . "', amount=" . $amount . ";";
         $this->openCart->db->query($query);
-        $this->getTransaction($order_id);
     }
 
     /**
@@ -302,7 +301,7 @@ class PayTransaction
      */
     public function getTransaction($order_id)
     {
-        $query = "SELECT * FROM `oc_pay_transactions` WHERE `order_id` = '" . $order_id . "';";
+        $query = "SELECT * FROM `" . DB_PREFIX . "pay_transactions` WHERE `order_id` = '" . $order_id . "';";
         $dbTransaction = $this->openCart->db->query($query);
 
         if ($dbTransaction->num_rows) {
