@@ -71,63 +71,65 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
         $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
         $data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
-
+        
         // Paymentmethods
         $gateways = [];
-        try {
-            $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
-            $sort_order = array();
-            foreach ($payPaymentMethods as $key => $method) {
-                $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
-                $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
-                $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
-                $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
-                $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
-                $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
-                $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
-                $image = 'https://static.pay.nl/' . $method->getImage();
+        if (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) {
+            try {
+                $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
+                $sort_order = array();
+                foreach ($payPaymentMethods as $key => $method) {
+                    $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
+                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
+                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
+                    $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
+                    $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+                    $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
+                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
+                    $image = 'https://static.pay.nl/' . $method->getImage();
 
-                $gateways[$method->getId()] = [];
+                    $gateways[$method->getId()] = [];
 
-                $gateways[$method->getId()]['id'] = $method->getId();
-                $gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
-                $gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
-                $gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
-                $gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
-                $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
-                $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
-                $gateways[$method->getId()]['countries'] = $countriesSetting;
-                $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
-                $gateways[$method->getId()]['image'] = $image;
+                    $gateways[$method->getId()]['id'] = $method->getId();
+                    $gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
+                    $gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
+                    $gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
+                    $gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
+                    $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
+                    $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
+                    $gateways[$method->getId()]['countries'] = $countriesSetting;
+                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
+                    $gateways[$method->getId()]['image'] = $image;
 
-                $gateways[$method->getId()]['name_translations'] = [];
-                $gateways[$method->getId()]['description_translations'] = [];    
-                
-                foreach ($this->model_localisation_language->getLanguages() as $language) {
-                    $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
-                    $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
-                }      
+                    $gateways[$method->getId()]['name_translations'] = [];
+                    $gateways[$method->getId()]['description_translations'] = [];
 
-                if ($this->paymentMethods->showIssuersField($method->getId())) {
-                    $gateways[$method->getId()]['showIssuersField'] = true;
-                    $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
+                    foreach ($this->model_localisation_language->getLanguages() as $language) {
+                        $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
+                        $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
+                    }
+
+                    if ($this->paymentMethods->showIssuersField($method->getId())) {
+                        $gateways[$method->getId()]['showIssuersField'] = true;
+                        $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
+                    }
+
+                    if ($this->paymentMethods->showBusinessFields($method->getId())) {
+                        $gateways[$method->getId()]['showBusinessFields'] = true;
+                        $gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
+                        $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
+                        $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
+                    }
+
+                    $sort_order[$method->getId()] = (!empty($sortSetting)) ? $sortSetting : $key;
                 }
 
-                if ($this->paymentMethods->showBusinessFields($method->getId())) {
-                    $gateways[$method->getId()]['showBusinessFields'] = true;
-                    $gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
-                    $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
-                    $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
-                }
-
-                $sort_order[$method->getId()] = (!empty($sortSetting)) ? $sortSetting : $key;
+                uasort($gateways, function ($a, $b) {
+                    return (int) $a['sort'] - (int) $b['sort'];
+                });
+            } catch (\Exception $e) {
+                $this->helper->logCritical('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
             }
-
-            uasort($gateways, function ($a, $b) {
-                return (int) $a['sort'] - (int) $b['sort'];
-            });
-        } catch (\Exception $e) {
-            $this->helper->logCritical('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
         }
 
         $data['pay_paymentmethods'] = $gateways;
