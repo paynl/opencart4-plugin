@@ -417,7 +417,37 @@
                     <input type="checkbox" name="payment_paynl_follow_payment" value="1" id="input-status" class="form-check-input"{% if pay_follow_payment == '1' %} checked{% endif %}/>
                   </div>                  
                 </div>
-              </div>                 
+              </div>        
+
+              <div class="row mb-3">
+                <label for="payment_paynl_auto_capture" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_auto_capture }}"></span>
+                    {{ text_auto_capture }}
+                  </span>
+                </label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="payment_paynl_auto_capture" value="0"/>
+                    <input type="checkbox" name="payment_paynl_auto_capture" value="1" id="input-status" class="form-check-input"{% if pay_auto_capture %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>  
+
+              <div class="row mb-3">
+                <label for="payment_paynl_auto_void" class="col-sm-2 col-form-label">                
+                  <span class="labelText">
+                    <span class="payTooltip" data-tooltip="{{ tooltip_auto_void }}"></span>
+                    {{ text_auto_void }}
+                  </span>
+                </label>
+                <div class="col-sm-10">
+                  <div class="form-check form-switch form-switch-lg">
+                    <input type="hidden" name="payment_paynl_auto_void" value="0"/>
+                    <input type="checkbox" name="payment_paynl_auto_void" value="1" id="input-status" class="form-check-input"{% if pay_auto_void %} checked{% endif %}/>
+                  </div>
+                </div>
+              </div>             
 
               <br/><br/>
 

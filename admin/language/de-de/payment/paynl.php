@@ -54,6 +54,10 @@ $_['tooltip_follow_payment'] = 'Dadurch wird sichergestellt, dass die Bestellung
 $_['text_logging'] = 'Protokollierung';
 $_['text_logging_download'] = 'Protokolle herunterladen';
 $_['tooltip_logging'] = 'Informationen zur Zahlungsabwicklung protokollieren';
+$_['text_auto_capture'] = 'Automatische capture';
+$_['text_auto_void'] = 'Automatisches stornieren';
+$_['tooltip_auto_capture'] = 'Aktivieren Sie die automatische capture für autorisierte Transaktionen. Captures werden initiiert, wenn eine Bestellung auf “Versendet” oder  “Komplett” gesetzt wird.';
+$_['tooltip_auto_void'] = 'Aktivieren Sie die automatische Stornierung für autorisierte Transaktionen. Stornierungen werden ausgelöst, wenn eine Bestellung auf Storniert gesetzt wird.';
 // Fields
 $_['text_no'] = 'Nein';
 $_['text_yes'] = 'Ja';

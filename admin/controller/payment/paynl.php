@@ -154,6 +154,8 @@ class Paynl extends \Opencart\System\Engine\Controller
             $this->helper::LOG_NONE => $this->language->get('text_no_logging')
         ];
         $data['pay_custom_exchange_url'] = $this->config->get('payment_' . $this->code . '_custom_exchange_url');
+        $data['pay_auto_capture'] = $this->config->get('payment_' . $this->code . '_auto_capture');
+        $data['pay_auto_void'] = $this->config->get('payment_' . $this->code . '_auto_void');
 
         // Suggestions
         $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
@@ -221,6 +223,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $this->model_extension_paynl_payment_paynl->install();
             $this->model_setting_event->addEvent(['code' => 'paynl_set_order_tab', 'description' => 'Set Pay. tab in admin order view page', 'trigger' => 'admin/view/sale/order_info/before', 'action' => 'extension/paynl/payment/paynl.order_info_before', 'status' => true, 'sort_order' => 1]);
             $this->model_setting_event->addEvent(['code' => 'paynl_set_order_tab_history', 'description' => 'Set Pay. tab in admin order view page', 'trigger' => 'admin/view/sale/order_info/before', 'action' => 'extension/paynl/payment/paynl.order_info_history_before', 'status' => true, 'sort_order' => 2]);
+            $this->model_setting_event->addEvent(['code' => 'paynl_auto_functions', 'description' => 'Pay. Automated functionalities', 'trigger' => 'catalog/model/checkout/order/addHistory/after', 'action' => 'extension/paynl/payment/webhooks.onOrderStatusChange', 'status' => true, 'sort_order' => 3]);
         }
     }
 
@@ -235,6 +238,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $this->model_extension_paynl_payment_paynl->uninstall();
             $this->model_setting_event->deleteEventByCode('paynl_set_order_tab');
             $this->model_setting_event->deleteEventByCode('paynl_set_order_tab_history');
+            $this->model_setting_event->deleteEventByCode('paynl_auto_functions');
         }
     }
 
