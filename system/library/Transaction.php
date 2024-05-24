@@ -9,6 +9,7 @@ use Opencart\System\Library\PayConfig;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Product;
 use PayNL\Sdk\Model\Request\TransactionCaptureRequest;
+use PayNL\Sdk\Model\Request\TransactionVoidRequest;
 use PayNL\Sdk\Model\Request\TransactionCreateRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
 use PayNL\Sdk\Model\Request\TransactionStatusRequest;
@@ -365,6 +366,17 @@ class PayTransaction
         $request = new TransactionCaptureRequest($transactionId);
         $request->setConfig($this->payConfig->getConfig());
         $request->setAmount($amount);
+        $request->start();
+    }
+
+    /**
+     * @param string $order_id
+     * @throws Exception
+     */
+    public function void($transactionId)
+    {
+        $request = new TransactionVoidRequest($transactionId);
+        $request->setConfig($this->payConfig->getConfig());
         $request->start();
     }
 

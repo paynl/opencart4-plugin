@@ -54,6 +54,10 @@ $_['tooltip_follow_payment'] = 'Cela garantira que la commande est mise à jour 
 $_['text_logging'] = 'Journalisation';
 $_['text_logging_download'] = 'Télécharger les journaux';
 $_['tooltip_logging'] = 'Enregistrer les informations de traitement des paiements';
+$_['text_auto_capture'] = 'Capture automatique';
+$_['text_auto_void'] = 'Annulation automatique';
+$_['tooltip_auto_capture'] = 'Activez la capture automatique pour les transactions autorisées. Les captures seront lancées lorsqu’une commande est définie sur Expédiée ou Complétée.';
+$_['tooltip_auto_void'] = 'Activez l’annulation automatique pour les transactions autorisées. Les annulations seront initiées lorsqu’une commande est définie sur Annulée.';
 // Fields
 $_['text_no'] = 'Non';
 $_['text_yes'] = 'Oui';

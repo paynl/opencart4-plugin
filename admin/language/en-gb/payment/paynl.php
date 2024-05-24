@@ -69,6 +69,10 @@ $_['text_logging_download'] = 'Download logs';
 $_['tooltip_logging'] = 'Log payment processing information';
 $_['text_custom_exchange_url'] = 'Custom exchange URL';
 $_['tooltip_custom_exchange_url'] = 'Use your own exchange-handler. Example: https://www.yourdomain.nl/exchange_handler?action=#action#&order_id=#order_id#';
+$_['text_auto_capture'] = 'Auto Capture';
+$_['text_auto_void'] = 'Auto Void';
+$_['tooltip_auto_capture'] = 'Enable auto capture for authorized transactions. Captures will be initiated when an order is set to Shipped or Complete.';
+$_['tooltip_auto_void'] = 'Enable auto void for authorized transactions. Voids will be initiated when an order is set to Cancelled';
 // Tab Suggestions
 $_['tab_suggestions'] = 'Suggestions?';
 $_['text_suggestions'] = 'If you have a feature request or other ideas, let us know!<br/>Your submission will be reviewed by our development team.<br/><br/>If needed, we will contact you for further information via the e-mail address provided.<br/>Please note: this form is not for Support requests, please contact <a href="mailto:support@pay.nl" target="_blank">support@pay.nl</a> for this.'; // phpcs:ignore

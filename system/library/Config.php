@@ -114,7 +114,7 @@ class PayConfig
      * @return string
      */
     public function getOrderDescription()
-    {   
+    {
         $description = $this->openCart->config->get('payment_' . $this->code . '_order_description');
         return (!empty($description)) ? $description . ' ' : 'Order ';
     }
@@ -133,7 +133,7 @@ class PayConfig
     public function getCustomExchangeURL()
     {
         return trim($this->openCart->config->get('payment_' . $this->code . '_custom_exchange_url'));
-    }    
+    }
 
     /**
      * @return string
@@ -153,6 +153,22 @@ class PayConfig
 
         $version = $jsonData['version'] ?? null;
         return $version;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function autoCaptureEnabled()
+    {
+        return ($this->openCart->config->get('payment_' . $this->code . '_auto_capture') ?? 1);
+    }
+
+    /**
+     * @return boolean
+     */
+    public function autoVoidEnabled()
+    {
+        return ($this->openCart->config->get('payment_' . $this->code . '_auto_void') ?? 1);
     }
 
     /**

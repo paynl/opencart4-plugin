@@ -54,6 +54,10 @@ $_['tooltip_follow_payment'] = 'Hierdoor wordt de bestelling bijgewerkt met de w
 $_['text_logging'] = 'Loggen';
 $_['text_logging_download'] = 'Logs downloaden';
 $_['tooltip_logging'] = 'Log informatie over betalingsverwerking';
+$_['text_auto_capture'] = 'Auto Capture';
+$_['text_auto_void'] = 'Auto Void';
+$_['tooltip_auto_capture'] = 'Schakel auto capture in voor gereserveerde transacties met status AUTHORIZE. De capture wordt uitgevoerd wanneer een bestelstatus wijzigt naar Shipped of Complete';
+$_['tooltip_auto_void'] = 'Schakel auto void in voor gereserveerde transacties met status AUTHORIZE. De void wordt uitgevoerd wanneer een bestelstatus wijzigt naar Cancelled';
 // Fields
 $_['text_no'] = 'Nee';
 $_['text_yes'] = 'Ja';
