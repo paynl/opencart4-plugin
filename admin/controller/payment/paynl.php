@@ -66,12 +66,12 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_current_version'] = $this->payConfig->getVersion();
 
         $this->load->model('localisation/language');
-		$data['languages'] = $this->model_localisation_language->getLanguages();
+        $data['languages'] = $this->model_localisation_language->getLanguages();
 
         $data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
         $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
         $data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
-        
+
         // Paymentmethods
         $gateways = [];
         if (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) {
@@ -84,6 +84,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                     $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
                     $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
                     $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+                    $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
                     $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
                     $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
                     $image = 'https://static.pay.nl/' . $method->getImage();
@@ -98,7 +99,11 @@ class Paynl extends \Opencart\System\Engine\Controller
                     $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
                     $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
                     $gateways[$method->getId()]['countries'] = $countriesSetting;
+                    $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
+                    $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
                     $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
+                    $shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
+                    $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
                     $gateways[$method->getId()]['image'] = $image;
 
                     $gateways[$method->getId()]['name_translations'] = [];
@@ -140,6 +145,8 @@ class Paynl extends \Opencart\System\Engine\Controller
         $this->load->model('localisation/country');
         $data['countries'] = $this->model_localisation_country->getCountries();
 
+        $data['shipping_methods'] = $this->getShippingMethods();
+
         // Settings
         $data['pay_order_description'] = $this->config->get('payment_' . $this->code . '_order_description');
         $data['pay_test_ip_address'] = $this->config->get('payment_' . $this->code . '_test_ip_address');
@@ -148,9 +155,9 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
         $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
         $data['pay_logging_options'] = [
-            $this->helper::LOG_ALL => $this->language->get('text_logging_all'), 
-            $this->helper::LOG_CRITICAL_NOTICE => $this->language->get('text_critical_notice'), 
-            $this->helper::LOG_ONLY_CRITICAL => $this->language->get('text_critical_only'), 
+            $this->helper::LOG_ALL => $this->language->get('text_logging_all'),
+            $this->helper::LOG_CRITICAL_NOTICE => $this->language->get('text_critical_notice'),
+            $this->helper::LOG_ONLY_CRITICAL => $this->language->get('text_critical_only'),
             $this->helper::LOG_NONE => $this->language->get('text_no_logging')
         ];
         $data['pay_custom_exchange_url'] = $this->config->get('payment_' . $this->code . '_custom_exchange_url');
@@ -160,7 +167,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         // Suggestions
         $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
         $data['pay_plugin_version'] = $this->payConfig->getObject();
-        
+
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
@@ -424,13 +431,15 @@ class Paynl extends \Opencart\System\Engine\Controller
      */
     public function version_check()
     {
-        $version = $this->request->post['versionCheck']; 
-        $result = false;    
+        $version = $this->request->post['versionCheck'];
+        $result = false;
         $url = 'https://api.github.com/repos/paynl/opencart3-plugin/releases';
         $options = array(
             'http' => array(
                 'method' => 'GET',
-                'header' => 'User-Agent:' . $_SERVER['HTTP_USER_AGENT']));
+                'header' => 'User-Agent:' . $_SERVER['HTTP_USER_AGENT']
+            )
+        );
 
         $context = stream_context_create($options);
 
@@ -461,10 +470,10 @@ class Paynl extends \Opencart\System\Engine\Controller
     {
         try {
 
-            $suggestions_form_message = $this->request->post['message']; 
+            $suggestions_form_message = $this->request->post['message'];
             $suggestions_form_email = $this->request->post['email'];
             $suggestions_form_plugin_version = $this->request->post['pluginverison'];
-    
+
             $pluginVersion = strtolower($suggestions_form_plugin_version);
             $phpVersion = phpversion();
             $message = isset($suggestions_form_message) ? nl2br($suggestions_form_message) : null;
@@ -512,5 +521,18 @@ class Paynl extends \Opencart\System\Engine\Controller
             'success' => $result
         );
         die(json_encode($returnarray));
+    }
+
+    public function getShippingMethods()
+    {
+        $method_data = [];
+        $this->load->model('setting/extension');
+        $results = $this->model_setting_extension->getExtensionsByType('shipping');
+        foreach ($results as $result) {
+            $this->load->language('extension/' . $result['extension'] . '/shipping/' . $result['code'], $result['code']);
+            $result['name'] = ($this->language->get($result['code'] . '_heading_title')) ?? $result['code'];
+            $method_data[$result['code']] = $result;
+        }
+        return $method_data;
     }
 }
