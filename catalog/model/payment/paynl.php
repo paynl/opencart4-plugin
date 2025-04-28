@@ -126,6 +126,28 @@ class Paynl extends \Opencart\System\Engine\Model
             }
         }
 
+        $shippingMethod = $this->session->data['shipping_method'];
+        $allowedShippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
+        if (!empty($allowedShippingSetting)) {
+            $allowedShippingCodes = [];
+            foreach ($allowedShippingSetting as $shippingSetting) {
+                $allowedShippingCodes[] = $this->getShippingCodeByCode($shippingSetting);
+            }
+            if (!in_array($shippingMethod['code'], $allowedShippingCodes)) {
+                return false;
+            }
+        }
+
+        $company = $this->getCompany();
+        $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
+        if (!empty($customerTypeSetting)) {
+            if ($customerTypeSetting == 1 && !empty($company)) {
+                return false;
+            } elseif ($customerTypeSetting == 2 && empty($company)) {
+                return false;
+            }
+        }
+
         $geozoneId = $this->getGeoZoneId();
         $geozoneSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_geozone');
         if (!empty($geozoneSetting) && $geozoneSetting != $geozoneId) {
@@ -161,5 +183,44 @@ class Paynl extends \Opencart\System\Engine\Model
             $country = $this->session->data['shipping_address']['country_id'] ?? '';
         }
         return $country;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCompany()
+    {
+        $country = '';
+        if (!empty($this->session->data['payment_address'])) {
+            $country = $this->session->data['payment_address']['company'] ?? '';
+        } elseif (!empty($this->session->data['shipping_address'])) {
+            $country = $this->session->data['shipping_address']['company'] ?? '';
+        }
+        return $country;
+    }
+
+    /**
+     * @param string $shippingCode
+     * @return string
+     */
+    public function getShippingCodeByCode($shippingCode)
+    {
+        $this->load->model('setting/extension');
+        $results = $this->model_setting_extension->getExtensionsByType('shipping');
+        $code = $shippingCode;
+        foreach ($results as $result) {
+            if ($result['code'] == $shippingCode) {
+                if ($this->config->get('shipping_' . $result['code'] . '_status')) {
+                    $this->load->model('extension/' . $result['extension'] . '/shipping/' . $result['code']);
+                    if (is_callable([$this->{'model_extension_' . $result['extension'] . '_shipping_' . $result['code']}, 'getQuote'])) {
+                        $quote = $this->{'model_extension_' . $result['extension'] . '_shipping_' . $result['code']}->getQuote($this->session->data['payment_address'] ?? $this->session->data['shipping_address']);
+                        if ($quote) {
+                            $code = $quote['quote'][$shippingCode]['code'];
+                        }
+                    }
+                }
+            }
+        }
+        return $code;
     }
 }
