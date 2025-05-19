@@ -8,11 +8,11 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 use Opencart\System\Library\PayConfig;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Product;
-use PayNL\Sdk\Model\Request\TransactionCaptureRequest;
-use PayNL\Sdk\Model\Request\TransactionVoidRequest;
-use PayNL\Sdk\Model\Request\TransactionCreateRequest;
+use PayNL\Sdk\Model\Request\OrderCaptureRequest;
+use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
-use PayNL\Sdk\Model\Request\TransactionStatusRequest;
+use PayNL\Sdk\Model\Request\OrderStatusRequest;
+
 
 class PayTransaction
 {
@@ -33,7 +33,6 @@ class PayTransaction
      * @param object $openCart
      */
     public function __construct($openCart) // phpcs:ignore
-
     {
         $this->openCart = $openCart;
         $this->payConfig = new PayConfig($openCart);
@@ -48,7 +47,7 @@ class PayTransaction
      */
     public function getTransactionStatus($transactionId)
     {
-        $transactionStatusRequest = new TransactionStatusRequest($transactionId);
+        $transactionStatusRequest = new OrderStatusRequest($transactionId);
         $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
         $transaction = $transactionStatusRequest->start();
         return $transaction;
@@ -139,6 +138,24 @@ class PayTransaction
     }
 
     /**
+     * @param string $orderId
+     * @return void
+     */
+    public function getPaymentMethod($payment_profile_id)
+    {              
+        $this->openCart->load->model('extension/paynl/payment/paynl');
+        $payment_methods = $this->openCart->{'model_extension_paynl_payment_paynl'}->getMethods([], true);
+        if (!empty($payment_methods['option'])) {
+            foreach ($payment_methods['option'] as $payment_method) {
+                if ($payment_method['paymentOptionId'] == $payment_profile_id) {
+                    $method = json_encode($payment_method);                  
+                    return $method;
+                }
+            }
+        }
+    }
+
+    /**
      * @param array $order_info
      * @param array $options
      * @return string
@@ -146,19 +163,14 @@ class PayTransaction
      */
     public function startTransaction(array $order_info, array $options)
     {
-        $request = new TransactionCreateRequest();
+        $request = new OrderCreateRequest();
         $request->setConfig($this->payConfig->getConfig(true));
         $request->setServiceId($this->payConfig->getServiceId());
-        $request->setDescription($this->payConfig->getOrderDescription() . $order_info['order_id']);
+        $request->setDescription('Order ' . $order_info['order_id']);
         $request->setReference($order_info['order_id']);
 
-        $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));
-        
-        $exchange_url = $this->payConfig->getCustomExchangeURL();
-        if (empty($exchange_url)) {
-            $exchange_url = $this->openCart->url->link('extension/paynl/payment/exchange.exchange');
-        }
-        $request->setExchangeUrl($exchange_url);
+        $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish') . '&session_id=' . $this->openCart->session->getId());
+        $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
 
         $request->setAmount($order_info['total']);
         $request->setCurrency($order_info['currency_code']);
@@ -267,15 +279,15 @@ class PayTransaction
         $order->setProducts($payProducts);
 
         $request->setStats((new \PayNL\Sdk\Model\Stats())
-                ->setObject($this->payConfig->getObject())
-                ->setExtra1($order_info['order_id']));
+            ->setObject($this->payConfig->getObject())
+            ->setExtra1($order_info['order_id']));
 
         $request->setOrder($order);
 
         try {
             $transaction = $request->start();
         } catch (PayException $e) {
-            throw new \Exception($e->getFriendlyMessage(), $e->getCode());
+            throw new \Exception($e->getMessage(), $e->getCode());
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
@@ -294,6 +306,7 @@ class PayTransaction
     {
         $query = "INSERT INTO `" . DB_PREFIX . "pay_transactions`(`order_id`, `transaction_id`, `amount`) VALUES ('" . $order_id . "','" . $transaction_id . "'," . $amount . ")  ON DUPLICATE KEY UPDATE transaction_id='" . $transaction_id . "', amount=" . $amount . ";";
         $this->openCart->db->query($query);
+        $this->getTransaction($order_id);
     }
 
     /**
@@ -363,20 +376,9 @@ class PayTransaction
      */
     public function capture($transactionId, $amount)
     {
-        $request = new TransactionCaptureRequest($transactionId);
+        $request = new OrderCaptureRequest($transactionId);
         $request->setConfig($this->payConfig->getConfig());
         $request->setAmount($amount);
-        $request->start();
-    }
-
-    /**
-     * @param string $order_id
-     * @throws Exception
-     */
-    public function void($transactionId)
-    {
-        $request = new TransactionVoidRequest($transactionId);
-        $request->setConfig($this->payConfig->getConfig());
         $request->start();
     }
 

@@ -18,7 +18,6 @@ class PayConfig
      * @param object $openCart
      */
     public function __construct($openCart) // phpcs:ignore
-
     {
         $this->openCart = $openCart;
     }
@@ -98,7 +97,7 @@ class PayConfig
         if ($core == 'custom') {
             return $this->openCart->config->get('payment_' . $this->code . '_custom_gateway');
         } elseif (!empty($core)) {
-            return 'https://rest.' . $core;
+            return 'https://connect.' . $core;
         }
     }
 

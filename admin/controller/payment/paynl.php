@@ -99,11 +99,11 @@ class Paynl extends \Opencart\System\Engine\Controller
                     $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
                     $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
                     $gateways[$method->getId()]['countries'] = $countriesSetting;
-                    $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
-                    $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
-                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
                     $shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
                     $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
+                    $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
+                    $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
+                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;                    
                     $gateways[$method->getId()]['image'] = $image;
 
                     $gateways[$method->getId()]['name_translations'] = [];
@@ -341,34 +341,39 @@ class Paynl extends \Opencart\System\Engine\Controller
             $payContent .= '{{ footer }}';
             $template = str_replace('{{ footer }}', $payContent . json_encode($payTransaction), $template);
 
-            $template_code = $template;
+            $template_code = $template;         
+
+            if(!empty($this->config->get('payment_' . $this->code . '_paymentmethod_' . $payTransaction->getPaymentMethod() . '_name'))){
+                $paymentMethodName = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $payTransaction->getPaymentMethod() . '_name');
+            } elseif ($payTransaction->getPaymentMethod() == 613) {
+                $paymentMethodName = 'Sandbox';
+            }       
 
             $data['paynl_order_id'] = $this->request->get['order_id'];
             $data['paynl_transaction_id'] = $payTransaction->getOrderId();
             $data['paynl_status_code'] = $payTransaction->getStatusCode();
             $data['paynl_status_name'] = $payTransaction->getStatusName();
-            $data['Paynl_payment_method'] = json_encode($payTransaction->getPaymentProfileId());
-            $data['paynl_currency'] = $payTransaction->getAmountConvertedCurrency();
-            $data['paynl_amount'] = number_format((float) $payTransaction->getAmountConverted(), 2, '.', '');
-            $data['paynl_amount_captured'] = number_format((float) $payTransaction->getAmountPaid(), 2, '.', '');
-            $data['paynl_amount_refunded'] = number_format((float) $payTransaction->getAmountRefunded(), 2, '.', '');
-            $data['paynl_cart_amount'] = number_format((float) $dbTransaction['amount'], 2, '.', '');
-
+            $data['Paynl_payment_method_name'] = $paymentMethodName;
+            $data['paynl_currency'] = $payTransaction->getCurrency();
+            $data['paynl_amount'] = number_format((float) $payTransaction->getAmount(), 2, '.', '');
+            $data['paynl_amount_captured'] = number_format((float) ($payTransaction->getCapturedAmount()->getValue() / 100), 2, '.', '');
+            $data['paynl_cart_amount'] = number_format((float) $dbTransaction['amount'], 2, '.', '');            
+       
             $data['show_refund'] = ($payTransaction->isPaid() || $payTransaction->isPartiallyRefunded());
             $data['show_capture'] = ($payTransaction->isAuthorized() || $payTransaction->getStatus()['code'] == 97);
 
             $this->load->language($this->route);
 
-            if (($payTransaction->isPaid() || $payTransaction->isPartiallyRefunded())) {
+            if ($payTransaction->isPaid()) {
                 $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|refund', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
-                $data['paynl_amount_value'] = number_format((float) ($payTransaction->getAmountConverted() - $payTransaction->getAmountRefunded()), 2, '.', '');
+                $data['paynl_amount_value'] = number_format((float) ($payTransaction->getAmount()), 2, '.', '');
 
                 $data['text_button'] = $this->language->get('text_refund');
                 $data['text_description'] = $this->language->get('text_refund_desc');
                 $data['text_confirm'] = $this->language->get('text_refund_confirm');
             } else {
                 $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|capture', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
-                $data['paynl_amount_value'] = number_format((float) ($payTransaction->getAmountConverted() - $payTransaction->getAmountPaid()), 2, '.', '');
+                $data['paynl_amount_value'] = number_format((float) ($payTransaction->getAmount() - $payTransaction->getCapturedAmount()->getValue()), 2, '.', '');
 
                 $data['text_button'] = $this->language->get('text_capture');
                 $data['text_description'] = $this->language->get('text_capture_desc');

@@ -11,18 +11,15 @@
               <td class="text-start">{{text_order_pm}}</td>
               <td class="text-start">{{text_order_amount_cart}}</td>
               <td class="text-start">{{text_order_amount_pay}}</td>
-              <td class="text-start">{{text_order_amount_refunded}}</td>
             </tr>
           </thead>
           <tbody id="order-products">
             <tr>
               <td class="text-start">{{ paynl_transaction_id }}</td>
               <td class="text-start">{{ paynl_status_name }}</td>
-              <td class="text-start">{{ payment_method }}</td>
-              
+              <td class="text-start">{{ Paynl_payment_method_name }}</td>              
               <td class="text-start">{{ currency_code }} {{ paynl_cart_amount }}</td>    
-              <td class="text-start">{{paynl_currency}} {{ paynl_amount }} {% if (paynl_amount_captured != 0) and (paynl_amount_captured != paynl_amount) %}({{paynl_amount_captured}} {{text_order_amount_captured}}){% endif %} </td>
-              <td class="text-start">{{paynl_currency}} {{ paynl_amount_refunded }}</td>              
+              <td class="text-start">{{ paynl_currency }} {{ paynl_amount }} {% if (paynl_amount_captured != 0) and (paynl_amount_captured != paynl_amount) %}({{paynl_amount_captured}} {{text_order_amount_captured}}){% endif %} </td>           
             </tr>
           </tbody>            
         </table>
