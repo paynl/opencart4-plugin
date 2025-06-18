@@ -112,8 +112,9 @@
                     <div class="input-group">
                         <select name="payment_paynl_failover_gateway" id="payment_paynl_failover_gateway" class="form-select">
                             {% for tgu in pay_tgu_list %}
-                                <option value="{{ tgu['domain'] }}" {% if tgu['domain'] == pay_failover_gateway %} selected {% endif %} {% if tgu['status'] == "INACTIVE" %} disabled {% endif %}>{{ tgu['domain']|capitalize }}</option>
-                            {% endfor %}
+                                {% if "zero.pay.nl" != tgu['domain'] %}
+                                  <option value="{{ tgu['domain'] }}" {% if tgu['domain'] == pay_failover_gateway %} selected {% endif %} {% if tgu['status'] == "INACTIVE" %} disabled {% endif %}>{{ tgu['domain']|capitalize }}</option>
+                                {% endif %} {% endfor %}
                             <option value="custom" {% if "custom" == pay_failover_gateway %} selected {% endif %}>Custom</option>
                         </select>
                     </div>

@@ -97,7 +97,7 @@ class PayConfig
         if ($core == 'custom') {
             return $this->openCart->config->get('payment_' . $this->code . '_custom_gateway');
         } elseif (!empty($core)) {
-            return 'https://connect.' . $core;
+            return 'https://' . $core;
         }
     }
 
