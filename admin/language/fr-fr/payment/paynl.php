@@ -98,3 +98,7 @@ $_['text_capture_confirm'] = 'Êtes-vous sûr de vouloir capturer ce montant: %a
 $_['text_capture_success'] = 'Pay. capturé %amount% avec succès !';
 $_['text_capture_error'] = 'Pay. Impossible de capturer, veuillez réessayer plus tard.';
 
+$_['text_void'] = 'l’annulation';
+$_['text_void_confirm'] = 'Êtes-vous sûr de vouloir annuler ce montant : %amount% ?';
+$_['text_void_success'] = 'Pay. annulé %amount% avec succès!';
+$_['text_void_error'] = 'Pay. Impossible d\'annuler, veuillez réessayer plus tard.';

@@ -97,3 +97,8 @@ $_['text_capture_desc'] = 'Betrag zur Erfassung';
 $_['text_capture_confirm'] = 'Möchten Sie diesen Betrag wirklich erfassen: %amount% ?';
 $_['text_capture_success'] = 'Pay. %amount% erfolgreich erfassen!';
 $_['text_capture_error'] = 'Pay. konnte nicht erfasst werden, bitte versuchen Sie es später noch einmal';
+
+$_['text_void'] = 'Stornierung';
+$_['text_void_confirm'] = 'Möchten Sie diesen Betrag wirklich stornieren: %amount% ?';
+$_['text_void_success'] = 'Pay. %amount% erfolgreich stornieren!';
+$_['text_void_error'] = 'Pay. konnte nicht storniert werden. Bitte versuchen Sie es später erneut.';

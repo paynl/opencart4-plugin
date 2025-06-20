@@ -38,17 +38,18 @@ class Exchange extends \Opencart\System\Engine\Controller
     public function exchange()
     {
         $exchange = new PayExchange();
+        $transactionId = $exchange->getPayOrderId();
         try {
             # Process the exchange request
             $payOrder = $exchange->process($this->payConfig->getConfig(true));
-            if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->isRefunded() || $payOrder->isCancelled()) {
+            if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->isRefunded() || $payOrder->isCancelled() || $payOrder->isVoided()) {
                 if ($payOrder->isPaid() || $payOrder->isAuthorized()) {
                     $processing = $this->payTransaction->checkProcessing($transactionId);
                     if (!empty($processing)) {
                         die('FALSE| Already Processing payment');
                     }  
                 }
-                $responseMessage = $this->payTransaction->processTransaction($exchange->getPayOrderId(), $payOrder->getReference(), $exchange->getAction());
+                $responseMessage = $this->payTransaction->processTransaction($exchange->getPayOrderId(), $payOrder, $exchange->getAction());
                 $this->helper->logDebug('Exchange: ' . $responseMessage, ['orderId' => $payOrder->getReference(), 'transactionId' => $exchange->getPayOrderId()]);
                 $responseResult = true;
                 $this->payTransaction->removeProcessing($transactionId);

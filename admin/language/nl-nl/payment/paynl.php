@@ -97,3 +97,8 @@ $_['text_capture_desc'] = 'Bedrag om te capturen';
 $_['text_capture_confirm'] = 'Weet je zeker dat je dit bedrag wilt capturen: %amount% ?';
 $_['text_capture_success'] = 'Pay. heeft %amount% succesvol gecaptured!';
 $_['text_capture_error'] = 'Pay. kon het bedrag niet capturen, probeer het later nog eens.';
+
+$_['text_void'] = 'Void';
+$_['text_void_confirm'] = 'Weet je zeker dat je dit bedrag wilt voiden: %amount% ?';
+$_['text_void_success'] = 'Pay. heeft %amount% succesvol gevoid!';
+$_['text_void_error'] = 'Pay. kon het bedrag niet voiden, probeer het later nog eens.';

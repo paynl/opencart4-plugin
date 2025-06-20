@@ -119,9 +119,14 @@ $_['text_refund_success'] = 'Pay. refunded %amount% successfully!';
 $_['text_refund_error'] = 'Pay. couldn\'t refund, please try again later.';
 
 $_['text_capture'] = 'Capture';
-$_['text_capture_desc'] = 'Amount to capture';
+$_['text_capture_desc'] = 'Amount to capture/void';
 $_['text_capture_confirm'] = 'Are you sure want to capture this amount: %amount% ?';
 $_['text_capture_success'] = 'Pay. captured %amount% successfully!';
 $_['text_capture_error'] = 'Pay. couldn\'t capture, please try again later.';
+
+$_['text_void'] = 'Void';
+$_['text_void_confirm'] = 'Are you sure want to void this amount: %amount% ?';
+$_['text_void_success'] = 'Pay. voided %amount% successfully!';
+$_['text_void_error'] = 'Pay. couldn\'t void, please try again later.';
 
 $_['text_error_nan'] = 'Amount must be a number higher than zero.';
