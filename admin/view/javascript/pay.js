@@ -134,4 +134,15 @@ $(document).ready(function () {
             $('#custom_core').hide()
         }
     })
+
+    $('.obscuredInput').each(function () {
+      var input = this;
+      $('<a class="obscuredDisplayShow"></a>').click(function () {
+        toggleObscured(input)
+      }).insertAfter(input);
+    })
 })
+
+function toggleObscured (element) {
+  $(element).parent().find('.obscuredInput').toggleClass('display');
+}
