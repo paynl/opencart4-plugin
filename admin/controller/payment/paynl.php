@@ -231,7 +231,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $this->model_extension_paynl_payment_paynl->install();
             $this->model_setting_event->addEvent(['code' => 'paynl_set_order_tab', 'description' => 'Set Pay. tab in admin order view page', 'trigger' => 'admin/view/sale/order_info/before', 'action' => 'extension/paynl/payment/paynl.order_info_before', 'status' => true, 'sort_order' => 1]);
             $this->model_setting_event->addEvent(['code' => 'paynl_set_order_tab_history', 'description' => 'Set Pay. tab in admin order view page', 'trigger' => 'admin/view/sale/order_info/before', 'action' => 'extension/paynl/payment/paynl.order_info_history_before', 'status' => true, 'sort_order' => 2]);
-            $this->model_setting_event->addEvent(['code' => 'paynl_auto_functions', 'description' => 'Pay. Automated functionalities', 'trigger' => 'catalog/model/checkout/order/addHistory/after', 'action' => 'extension/paynl/payment/webhooks.onOrderStatusChange', 'status' => true, 'sort_order' => 3]);
+            $this->model_setting_event->addEvent(['code' => 'paynl_auto_functions', 'description' => 'Pay. Automated functionalities', 'trigger' => 'catalog/model/checkout/order.addHistory/after', 'action' => 'extension/paynl/payment/webhooks.onOrderStatusChange', 'status' => true, 'sort_order' => 3]);
         }
     }
 
