@@ -392,7 +392,7 @@ class PayTransaction
      */
     public function capture($transactionId, $amount)
     {
-        $transaction = $this->getTransaction($transactionId);
+        $transaction = $this->getTransactionStatus($transactionId);
         $maxAmount = number_format((float) $transaction->getAmount(), 2, '.', '');
         $request = new OrderCaptureRequest($transactionId);
         $request->setConfig($this->payConfig->getConfig());
