@@ -8,11 +8,13 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 use Opencart\System\Library\PayConfig;
 use PayNL\Sdk\Exception\PayException;
 use PayNL\Sdk\Model\Product;
-use PayNL\Sdk\Model\Request\TransactionCaptureRequest;
-use PayNL\Sdk\Model\Request\TransactionVoidRequest;
-use PayNL\Sdk\Model\Request\TransactionCreateRequest;
+use PayNL\Sdk\Model\Request\OrderCaptureRequest;
+use PayNL\Sdk\Model\Request\OrderVoidRequest;
+use PayNL\Sdk\Model\Request\OrderCreateRequest;
 use PayNL\Sdk\Model\Request\TransactionRefundRequest;
+use PayNL\Sdk\Model\Request\OrderStatusRequest;
 use PayNL\Sdk\Model\Request\TransactionStatusRequest;
+
 
 class PayTransaction
 {
@@ -33,7 +35,6 @@ class PayTransaction
      * @param object $openCart
      */
     public function __construct($openCart) // phpcs:ignore
-
     {
         $this->openCart = $openCart;
         $this->payConfig = new PayConfig($openCart);
@@ -50,8 +51,21 @@ class PayTransaction
     {
         $transactionStatusRequest = new TransactionStatusRequest($transactionId);
         $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
-        $transaction = $transactionStatusRequest->start();
-        return $transaction;
+        $transactionStatus = $transactionStatusRequest->start();  
+        return $transactionStatus;
+    }
+
+    /**
+     * @param string $transactionId
+     * @return \PayNL\Sdk\Model\OrderStatusResponse
+     * @throws Exception
+     */
+    public function getOrderStatus($transactionId)
+    {
+        $orderStatusRequest = new OrderStatusRequest($transactionId);
+        $orderStatusRequest->setConfig($this->payConfig->getConfig(true));
+        $orderStatus = $orderStatusRequest->start();
+        return $orderStatus;
     }
 
     /**
@@ -62,33 +76,31 @@ class PayTransaction
      * @throws Exception
      * @throws PayException
      */
-    public function processTransaction($transactionId, $orderId, $action)
+    public function processTransaction($transactionId, $payOrder, $action)
     {
         $this->openCart->load->model('checkout/order');
         $this->openCart->load->model('extension/paynl/payment/paynl');
 
-        $transaction = $this->getTransactionStatus($transactionId);
+        $orderId = $payOrder->getReference();
 
         $iOrderState = null;
-        if ($transaction->isPaid() || $transaction->isAuthorized() || $transaction->getStatus()['code'] == 97) {
+        if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97) {
             $iOrderState = $this->STATUS_PROCESSING;
             $status = 'Processing';
         }
-        if ($transaction->isCancelled()) {
+        if ($payOrder->isCancelled() || $payOrder->isVoided()) {
             $iOrderState = $this->STATUS_CANCELED;
             $status = 'Cancelled';
         }
-        if ($transaction->isRefunded(true)) {
+        if ($payOrder->isRefunded()) {
             $iOrderState = $this->STATUS_REFUNDED;
             $status = 'Refunded';
-        } else if ($transaction->isRefunded()) {
-            $this->addHistory($orderId, $transactionId, 'Status unchanged', 'Processing', $transaction->getStatusName(), $action);
-        }
+        } 
 
         $order_info = $this->openCart->model_checkout_order->getOrder($orderId);
-        $current_order_status = $order_info['order_status_id'];
-
-        if (!$iOrderState || ($current_order_status == $this->STATUS_PROCESSING && $iOrderState == $this->STATUS_CANCELED)) {
+        $current_order_status = $order_info['order_status_id'];   
+        
+        if (!$iOrderState || ($current_order_status == $this->STATUS_PROCESSING && $iOrderState == $this->STATUS_CANCELED && $payOrder->isPaid() && !$payOrder->isAuthorized())) {
             return 'Ignoring';
         }
 
@@ -99,9 +111,9 @@ class PayTransaction
             $message = "Status updated to $status";
         }
 
-        $this->addHistory($orderId, $transactionId, $message, $status, $transaction->getStatusName(), $action);
+        $this->addHistory($orderId, $transactionId, $message, $status, $payOrder->getStatusName(), $action);
 
-        if ($this->payConfig->shouldFollowPayment() && $transaction->isPaid()) {
+        if ($this->payConfig->shouldFollowPayment() && $payOrder->isPaid() && $payOrder->isPaid()) {
             $this->getRealPaymentMethod($orderId);
         }
 
@@ -139,6 +151,24 @@ class PayTransaction
     }
 
     /**
+     * @param string $orderId
+     * @return void
+     */
+    public function getPaymentMethod($payment_profile_id)
+    {              
+        $this->openCart->load->model('extension/paynl/payment/paynl');
+        $payment_methods = $this->openCart->{'model_extension_paynl_payment_paynl'}->getMethods([], true);
+        if (!empty($payment_methods['option'])) {
+            foreach ($payment_methods['option'] as $payment_method) {
+                if ($payment_method['paymentOptionId'] == $payment_profile_id) {
+                    $method = json_encode($payment_method);                  
+                    return $method;
+                }
+            }
+        }
+    }
+
+    /**
      * @param array $order_info
      * @param array $options
      * @return string
@@ -146,19 +176,14 @@ class PayTransaction
      */
     public function startTransaction(array $order_info, array $options)
     {
-        $request = new TransactionCreateRequest();
+        $request = new OrderCreateRequest();
         $request->setConfig($this->payConfig->getConfig(true));
         $request->setServiceId($this->payConfig->getServiceId());
-        $request->setDescription($this->payConfig->getOrderDescription() . $order_info['order_id']);
+        $request->setDescription('Order ' . $order_info['order_id']);
         $request->setReference($order_info['order_id']);
 
-        $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));
-        
-        $exchange_url = $this->payConfig->getCustomExchangeURL();
-        if (empty($exchange_url)) {
-            $exchange_url = $this->openCart->url->link('extension/paynl/payment/exchange.exchange');
-        }
-        $request->setExchangeUrl($exchange_url);
+        $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish') . '&session_id=' . $this->openCart->session->getId());
+        $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
 
         $request->setAmount($order_info['total']);
         $request->setCurrency($order_info['currency_code']);
@@ -267,19 +292,21 @@ class PayTransaction
         $order->setProducts($payProducts);
 
         $request->setStats((new \PayNL\Sdk\Model\Stats())
-                ->setObject($this->payConfig->getObject())
-                ->setExtra1($order_info['order_id']));
+            ->setObject($this->payConfig->getObject())
+            ->setExtra1($order_info['order_id']));
 
         $request->setOrder($order);
+
+        
 
         try {
             $transaction = $request->start();
         } catch (PayException $e) {
-            throw new \Exception($e->getFriendlyMessage(), $e->getCode());
+            throw new \Exception($e->getMessage(), $e->getCode());
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
-
+        
         $this->addTransaction($order_info['order_id'], $transaction->getOrderId(), $order_info['total']);
         return $transaction->getPaymentUrl();
     }
@@ -294,6 +321,7 @@ class PayTransaction
     {
         $query = "INSERT INTO `" . DB_PREFIX . "pay_transactions`(`order_id`, `transaction_id`, `amount`) VALUES ('" . $order_id . "','" . $transaction_id . "'," . $amount . ")  ON DUPLICATE KEY UPDATE transaction_id='" . $transaction_id . "', amount=" . $amount . ";";
         $this->openCart->db->query($query);
+        $this->getTransaction($order_id);
     }
 
     /**
@@ -308,7 +336,8 @@ class PayTransaction
         if ($dbTransaction->num_rows) {
             return [
                 'db' => $dbTransaction->row,
-                'status' => $this->getTransactionStatus($dbTransaction->row['transaction_id']),
+                'orderStatus' => $this->getOrderStatus($dbTransaction->row['transaction_id']),
+                'transactionStatus' => $this->getTransactionStatus($dbTransaction->row['transaction_id']),
             ];
         } else {
             return null;
@@ -363,19 +392,24 @@ class PayTransaction
      */
     public function capture($transactionId, $amount)
     {
-        $request = new TransactionCaptureRequest($transactionId);
+        $transaction = $this->getTransaction($transactionId);
+        $maxAmount = number_format((float) $transaction->getAmount(), 2, '.', '');
+        $request = new OrderCaptureRequest($transactionId);
         $request->setConfig($this->payConfig->getConfig());
-        $request->setAmount($amount);
+        if($maxAmount != $amount) {
+            $request->setAmount($amount);
+        }        
         $request->start();
     }
 
     /**
      * @param string $order_id
+     * @param string $amount
      * @throws Exception
      */
-    public function void($transactionId)
+    public function void($transactionId, $amount)
     {
-        $request = new TransactionVoidRequest($transactionId);
+        $request = new OrderVoidRequest($transactionId);
         $request->setConfig($this->payConfig->getConfig());
         $request->start();
     }

@@ -18,7 +18,7 @@ class Finish extends \Opencart\System\Engine\Controller
     const ORDERSTATUS_PAID = 100;
     const ORDERSTATUS_AUTHORIZED = array(95, 97);
     const ORDERSTATUS_PENDING = array(20, 25, 40, 50, 90);
-    const ORDERSTATUS_DENIED = -63;
+    const ORDERSTATUS_DENIED = -64;
     const ORDERSTATUS_CANCELED = -90;
     const ORDERSTATUS_VERIFY = 85;
 
@@ -40,8 +40,8 @@ class Finish extends \Opencart\System\Engine\Controller
     public function finish()
     {
         $this->load->language($this->route);
-        $payOrderId = $this->request->get['orderId'];
-        $orderStatusId = $this->request->get['orderStatusId'];
+        $payOrderId = $this->request->get['id'];
+        $orderStatusId = $this->request->get['statusCode']; 
 
         if (in_array($orderStatusId, self::ORDERSTATUS_PENDING) || $orderStatusId == self::ORDERSTATUS_PAID || in_array($orderStatusId, self::ORDERSTATUS_AUTHORIZED) || $orderStatusId == self::ORDERSTATUS_VERIFY) {
             $this->response->redirect($this->url->link('checkout/success'));

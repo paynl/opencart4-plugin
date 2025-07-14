@@ -49,7 +49,7 @@ class Webhooks extends \Opencart\System\Engine\Controller
         $transaction = $this->payTransaction->getTransaction($this->request->get['order_id']);
         if ($transaction) {
             $dbTransaction = $transaction['db'];
-            $payTransaction = $transaction['status'];
+            $payTransaction = $transaction['orderStatus'];
             if ($payTransaction->isAuthorized()) {
                 try {
                     if ($current_order_status == $this->STATUS_SHIPPED && $this->payConfig->autoCaptureEnabled()) {
@@ -57,7 +57,7 @@ class Webhooks extends \Opencart\System\Engine\Controller
                         $this->payTransaction->capture($dbTransaction['transaction_id'], $dbTransaction['amount']);
                     } elseif ($current_order_status == $this->STATUS_CANCELED && $this->payConfig->autoVoidEnabled()) {
                         $this->helper->logDebug('Performing Auto Void', ['orderId' => $this->request->get['order_id'], 'transactionId' => $dbTransaction['transaction_id']]);
-                        $this->payTransaction->void($dbTransaction['transaction_id']);
+                        $this->payTransaction->void($dbTransaction['transaction_id'], $dbTransaction['amount']);
                     }
                 } catch (\Exception $e) {
                     $this->helper->logCritical('Auto Capture|Void Failed: ' . $e->getMessage(), ['orderId' => $this->request->get['order_id'], 'transactionId' => $dbTransaction['transaction_id']]);

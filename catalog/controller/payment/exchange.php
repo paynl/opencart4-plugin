@@ -9,6 +9,7 @@ use Opencart\System\Library\PayConfig;
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayTransaction;
 use PayNL\Sdk\Exception\PayException;
+use PayNL\Sdk\Util\Exchange as PayExchange;
 
 class Exchange extends \Opencart\System\Engine\Controller
 {
@@ -36,37 +37,37 @@ class Exchange extends \Opencart\System\Engine\Controller
      */
     public function exchange()
     {
-        $transactionId = $this->request->get['order_id'] ?? null;
-        $orderId = $this->request->get['extra1'] ?? null;
-        $action = $this->request->get['action'] ?? null;
-
-        if ($action == 'pending') {
-            $message = 'ignoring PENDING';
-            $this->helper->logDebug('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
-            die("TRUE|" . $message);
-        }
-
-        if ($action == 'new_ppt') {
-            $processing = $this->payTransaction->checkProcessing($transactionId);
-            if (!empty($processing)) {
-                die('FALSE| Already Processing payment');
-            }
-        }
-
+        $exchange = new PayExchange();
+        $transactionId = $exchange->getPayOrderId();
         try {
-            $message = $this->payTransaction->processTransaction($transactionId, $orderId, $action);
-            $this->helper->logDebug('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
-            if ($action == 'new_ppt') {
+            # Process the exchange request
+            $payOrder = $exchange->process($this->payConfig->getConfig(true));
+            if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->isRefunded() || $payOrder->isCancelled() || $payOrder->isVoided()) {
+                if ($payOrder->isPaid() || $payOrder->isAuthorized()) {
+                    $processing = $this->payTransaction->checkProcessing($transactionId);
+                    if (!empty($processing)) {
+                        die('FALSE| Already Processing payment');
+                    }  
+                }
+                $responseMessage = $this->payTransaction->processTransaction($exchange->getPayOrderId(), $payOrder, $exchange->getAction());
+                $this->helper->logDebug('Exchange: ' . $responseMessage, ['orderId' => $payOrder->getReference(), 'transactionId' => $exchange->getPayOrderId()]);
+                $responseResult = true;
                 $this->payTransaction->removeProcessing($transactionId);
-            }
-            die("TRUE|" . $message);
-        } catch (PayException $e) {
-            $message = "Api error: " . $e->getMessage();
-        } catch (\Exception $e) {
-            $message = "Unknown error: " . $e->getMessage();
+            } elseif ($payOrder->isPending()) {
+                $responseMessage = 'ignoring PENDING';
+                $this->helper->logDebug('Exchange: ' . $responseMessage, ['orderId' => $payOrder->getReference(), 'transactionId' => $exchange->getPayOrderId()]);
+                $responseResult = true;
+            } else {
+                $responseResult = true;
+                $responseMessage = 'ignoring ' . $payOrder->getStatusCode(); 
+            }        
+            
+            $this->helper->logDebug('Exchange: ' . $responseMessage, ['orderId' => $payOrder->getReference(), 'transactionId' => $exchange->getPayOrderId()]);
+        } catch (\Throwable $exception) {
+            $responseResult = false;
+            $responseMessage = $exception->getMessage();
         }
 
-        $this->helper->logNotice('Exchange: ' . $message, ['orderId' => $orderId, 'transactionId' => $transactionId]);
-        die("FALSE|" . $message);
+        $exchange->setResponse($responseResult, $responseMessage);
     }
 }

@@ -42,7 +42,6 @@ class PayPaymentMethods
         $this->route = $this->payConfig->route;
 
         $this->showIssuers = [
-            self::METHOD_IDEAL,
             self::METHOD_INSTORE,
         ];
 

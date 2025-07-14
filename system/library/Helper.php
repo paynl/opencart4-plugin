@@ -26,7 +26,6 @@ class PayHelper
      * @param object $openCart
      */
     public function __construct($openCart) // phpcs:ignore
-
     {
         $this->openCart = $openCart;
         $this->payConfig = new PayConfig($openCart);
