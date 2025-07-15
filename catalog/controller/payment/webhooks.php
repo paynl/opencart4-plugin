@@ -37,6 +37,9 @@ class Webhooks extends \Opencart\System\Engine\Controller
     public function onOrderStatusChange(&$route, &$data)
     {
         $this->load->model('checkout/order');
+        if (empty($this->request->get['order_id'])) {
+            return;
+        }
         $order_info = $this->model_checkout_order->getOrder((int) $this->request->get['order_id']);
         $current_order_status = $order_info['order_status_id'] ?? null;
         if (

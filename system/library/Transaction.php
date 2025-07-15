@@ -321,7 +321,6 @@ class PayTransaction
     {
         $query = "INSERT INTO `" . DB_PREFIX . "pay_transactions`(`order_id`, `transaction_id`, `amount`) VALUES ('" . $order_id . "','" . $transaction_id . "'," . $amount . ")  ON DUPLICATE KEY UPDATE transaction_id='" . $transaction_id . "', amount=" . $amount . ";";
         $this->openCart->db->query($query);
-        $this->getTransaction($order_id);
     }
 
     /**
@@ -336,8 +335,7 @@ class PayTransaction
         if ($dbTransaction->num_rows) {
             return [
                 'db' => $dbTransaction->row,
-                'orderStatus' => $this->getOrderStatus($dbTransaction->row['transaction_id']),
-                'transactionStatus' => $this->getTransactionStatus($dbTransaction->row['transaction_id']),
+                'orderStatus' => $this->getOrderStatus($dbTransaction->row['transaction_id'])
             ];
         } else {
             return null;
@@ -392,7 +390,7 @@ class PayTransaction
      */
     public function capture($transactionId, $amount)
     {
-        $transaction = $this->getTransactionStatus($transactionId);
+        $transaction = $this->getOrderStatus($transactionId);
         $maxAmount = number_format((float) $transaction->getAmount(), 2, '.', '');
         $request = new OrderCaptureRequest($transactionId);
         $request->setConfig($this->payConfig->getConfig());

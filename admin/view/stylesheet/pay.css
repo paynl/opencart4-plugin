@@ -157,3 +157,31 @@
 .payHide {
     display: none;
 }
+
+.obscuredInput {
+    text-security: disc;
+    -webkit-text-security: disc;
+    -moz-text-security: disc;
+}
+
+.obscuredInput.display {
+    text-security: none;
+    -webkit-text-security: none;
+    -moz-text-security: none;
+}
+
+.obscuredDisplayShow {
+    cursor: pointer;
+    background-image: url(/extension/paynl/admin/view/image/showPasswordIcon.png);
+    height: 20px;
+    width: 25px;
+    display: inline-block;
+    background-repeat: no-repeat;
+    background-size: 35px auto;
+    background-position: center center;
+    margin-top: 5px;
+    margin-left: 5px;
+    position: absolute;
+    top: 19px;
+    right: 26px;
+}
