@@ -333,9 +333,9 @@ class Paynl extends \Opencart\System\Engine\Controller
         if ($transaction) {
 
             $dbTransaction = $transaction['db'];
-            $payTransaction = $transaction['transactionStatus'];
             $payOrder = $transaction['orderStatus'];
-            
+            $payTransaction = $this->payTransaction->getTransactionStatus($dbTransaction['transaction_id']);
+
             $template = $this->getTemplate($route, $template_code);
 
             $payContent = '<link type="text/css" href="../extension/paynl/admin/view/stylesheet/order.css" rel="stylesheet" media="screen">';
@@ -344,9 +344,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $payContent .= '{{ footer }}';
             $template = str_replace('{{ footer }}', $payContent . json_encode($payTransaction), $template);
 
-            $template_code = $template;    
-            
-            
+            $template_code = $template;       
 
             if(!empty($this->config->get('payment_' . $this->code . '_paymentmethod_' . $payOrder->getPaymentMethod() . '_name'))){
                 $paymentMethodName = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $payOrder->getPaymentMethod() . '_name');
