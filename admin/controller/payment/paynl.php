@@ -54,7 +54,6 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['save'] = $this->url->link('extension/paynl/payment/' . $this->code . '|save', 'user_token=' . $this->session->data['user_token']);
         $data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
 
-        // General
         $data['payment_' . $this->code . '_status'] = $this->config->get('payment_' . $this->code . '_status');
         $data['payment_' . $this->code . '_sort_order'] = $this->config->get('payment_' . $this->code . '_sort_order');
 
@@ -72,7 +71,6 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
         $data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
 
-        // Paymentmethods
         $gateways = [];
         if (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) {
             try {
@@ -84,7 +82,6 @@ class Paynl extends \Opencart\System\Engine\Controller
                     $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
                     $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
                     $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
-                    $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
                     $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
                     $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
                     $image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
@@ -133,7 +130,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                     return (int) $a['sort'] - (int) $b['sort'];
                 });
             } catch (\Exception $e) {
-                $this->helper->logCritical('Admin Paymentmethods: failed to load', ['error' => $e->getMessage()]);
+                $this->helper->logCritical('Admin Payment methods: failed to load', ['error' => $e->getMessage()]);
             }
         }
 
@@ -165,7 +162,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_auto_capture'] = $this->config->get('payment_' . $this->code . '_auto_capture');
         $data['pay_auto_void'] = $this->config->get('payment_' . $this->code . '_auto_void');
 
-        // Suggestions
+        # Suggestions
         $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
         $data['pay_plugin_version'] = $this->payConfig->getObject();
 
@@ -356,7 +353,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $data['paynl_transaction_id'] = $payTransaction->getOrderId();
             $data['paynl_status_code'] = $payTransaction->getStatusCode();
             $data['paynl_status_name'] = $payTransaction->getStatusName();
-            $data['Paynl_payment_method_name'] = $paymentMethodName;
+            $data['Paynl_payment_method_name'] = $paymentMethodName ?? '';
             $data['paynl_currency'] = $payOrder->getCurrency();
             $data['paynl_amount'] = number_format((float) $payOrder->getAmount(), 2, '.', '');
             $data['paynl_amount_captured'] = number_format((float) ($payOrder->getCapturedAmount()->getValue() / 100), 2, '.', '');
@@ -464,7 +461,6 @@ class Paynl extends \Opencart\System\Engine\Controller
      */
     public function version_check()
     {
-        $version = $this->request->post['versionCheck'];
         $result = false;
         $url = 'https://api.github.com/repos/paynl/opencart3-plugin/releases';
         $options = array(
@@ -489,11 +485,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $response = '';
         }
         header('Content-Type: application/json;charset=UTF-8');
-        $returnarray = array(
-            'success' => $result,
-            'version' => $response,
-        );
-        die(json_encode($returnarray));
+        die(json_encode(['success' => $result, 'version' => $response]));
     }
 
     /**
@@ -502,7 +494,6 @@ class Paynl extends \Opencart\System\Engine\Controller
     public function suggestions()
     {
         try {
-
             $suggestions_form_message = $this->request->post['message'];
             $suggestions_form_email = $this->request->post['email'];
             $suggestions_form_plugin_version = $this->request->post['pluginverison'];
@@ -512,7 +503,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $message = isset($suggestions_form_message) ? nl2br($suggestions_form_message) : null;
 
             $email = null;
-            if (isset($suggestions_form_email) && !empty($suggestions_form_email)) {
+            if (!empty($suggestions_form_email)) {
                 $email = '<b>Client Email:</b><span style="width: 100%;box-sizing: border-box; display:inline-block; padding: 10px; border:1px solid #cccccc;">' . strtolower($suggestions_form_email) . '</span><br/><br/>'; // phpcs:ignore
             }
 
@@ -531,7 +522,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                                 <td style="padding:25px;">
                                     <h1 style="font-size:24px;margin:0 0 20px 0;font-family:Arial,sans-serif;">Pay. Suggestion</h1>
                                     <p style="margin:0 0 12px 0;font-size:16px;line-height:24px;font-family:Arial,sans-serif;">
-                                        Pay. object: ' . $pluginVersion . '.<br/><br/>
+                                        Pay. object: ' . $pluginVersion . ' | ' . $phpVersion . '.<br/><br/>
                                         ' . $email . '
                                         <b>Message:</b>
                                         <span style="width: 100%;box-sizing: border-box; display:inline-block; padding: 10px; border:1px solid #cccccc;">' . $message . '</span>
@@ -550,10 +541,7 @@ class Paynl extends \Opencart\System\Engine\Controller
             $result = false;
         }
         header('Content-Type: application/json;charset=UTF-8');
-        $returnarray = array(
-            'success' => $result
-        );
-        die(json_encode($returnarray));
+        die(json_encode(['success' => $result]));
     }
 
     public function getShippingMethods()
