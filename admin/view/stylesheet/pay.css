@@ -121,12 +121,12 @@
     text-align: center;
 }
 
-.translations .hidden{
+.translations .hidden {
     display: none !important;
     visibility: hidden !important;
 }
 
-.translations .show_translations{
+.translations .show_translations {
     width: auto;
     display: inline-block;
     cursor: pointer;
