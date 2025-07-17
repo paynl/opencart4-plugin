@@ -45,36 +45,44 @@ class PayTransaction
     /**
      * @param string $transactionId
      * @return \PayNL\Sdk\Model\TransactionStatusResponse
-     * @throws Exception
+     * @throws \Exception
      */
     public function getTransactionStatus($transactionId)
     {
-        $transactionStatusRequest = new TransactionStatusRequest($transactionId);
-        $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
-        $transactionStatus = $transactionStatusRequest->start();  
-        return $transactionStatus;
+        try {
+            $transactionStatusRequest = new TransactionStatusRequest($transactionId);
+            $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
+            $transactionStatus = $transactionStatusRequest->start();  
+            return $transactionStatus;
+        } catch (\Exception $e) {
+            $this->helper->logCritical('getTransactionStatus error: ' . $e->getMessage(), ['transactionId' => $transactionId]);
+            return;
+        }
     }
 
     /**
      * @param string $transactionId
      * @return \PayNL\Sdk\Model\OrderStatusResponse
-     * @throws Exception
+     * @throws \Exception
      */
     public function getOrderStatus($transactionId)
-    {
-        $orderStatusRequest = new OrderStatusRequest($transactionId);
-        $orderStatusRequest->setConfig($this->payConfig->getConfig(true));
-        $orderStatus = $orderStatusRequest->start();
-        return $orderStatus;
+    {        
+        try {
+            $orderStatusRequest = new OrderStatusRequest($transactionId);
+            $orderStatusRequest->setConfig($this->payConfig->getConfig(true));
+            $orderStatus = $orderStatusRequest->start();
+            return $orderStatus;
+        } catch (\Exception $e) {
+            $this->helper->logCritical('getOrderStatus error: ' . $e->getMessage(), ['transactionId' => $transactionId]);
+            return;
+        }
     }
 
     /**
      * @param string $transactionId
-     * @param string $orderId
+     * @param \PayNL\Sdk\Model\Pay\PayOrder $payOrder
      * @param string $action
      * @return string
-     * @throws Exception
-     * @throws PayException
      */
     public function processTransaction($transactionId, $payOrder, $action)
     {
@@ -84,7 +92,7 @@ class PayTransaction
         $orderId = $payOrder->getReference();
 
         $iOrderState = null;
-        if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97) {
+        if ($payOrder->isPaid() || $payOrder->isAuthorized()) {
             $iOrderState = $this->STATUS_PROCESSING;
             $status = 'Processing';
         }
@@ -151,7 +159,7 @@ class PayTransaction
     }
 
     /**
-     * @param string $orderId
+     * @param string $payment_profile_id
      * @return void
      */
     public function getPaymentMethod($payment_profile_id)
@@ -172,7 +180,7 @@ class PayTransaction
      * @param array $order_info
      * @param array $options
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function startTransaction(array $order_info, array $options)
     {
@@ -345,7 +353,10 @@ class PayTransaction
     /**
      * @param string $order_id
      * @param string $transaction_id
-     * @param float $amount
+     * @param string $message
+     * @param string $ocStatus
+     * @param string $payStatus
+     * @param string $action
      *
      */
     public function addHistory($order_id, $transaction_id, $message, $ocStatus, $payStatus, $action)
@@ -372,7 +383,6 @@ class PayTransaction
      * @param string $order_id
      * @param string $amount
      * @param string $currency
-     * @throws Exception
      */
     public function refund($transactionId, $amount, $currency)
     {
@@ -386,7 +396,6 @@ class PayTransaction
     /**
      * @param string $order_id
      * @param string $amount
-     * @throws Exception
      */
     public function capture($transactionId, $amount)
     {
@@ -403,7 +412,6 @@ class PayTransaction
     /**
      * @param string $order_id
      * @param string $amount
-     * @throws Exception
      */
     public function void($transactionId, $amount)
     {
@@ -415,6 +423,7 @@ class PayTransaction
     /**
      * @param $payOrderId
      * @return array
+     * @throws \Exception
      */
     public function checkProcessing($payOrderId)
     {

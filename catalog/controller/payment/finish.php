@@ -7,6 +7,7 @@ require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
 use Opencart\System\Library\PayConfig;
 use Opencart\System\Library\PayTransaction;
+use PayNL\Sdk\Model\Pay\PayStatus;
 
 class Finish extends \Opencart\System\Engine\Controller
 {
@@ -14,13 +15,7 @@ class Finish extends \Opencart\System\Engine\Controller
     private $route;
     private $payConfig;
     private $payTransaction;
-
-    const ORDERSTATUS_PAID = 100;
-    const ORDERSTATUS_AUTHORIZED = array(95, 97);
-    const ORDERSTATUS_PENDING = array(20, 25, 40, 50, 90);
     const ORDERSTATUS_DENIED = -64;
-    const ORDERSTATUS_CANCELED = -90;
-    const ORDERSTATUS_VERIFY = 85;
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
@@ -41,11 +36,11 @@ class Finish extends \Opencart\System\Engine\Controller
     {
         $this->load->language($this->route);
         $payOrderId = $this->request->get['id'];
-        $orderStatusId = $this->request->get['statusCode']; 
+        $orderStatusId = (new PayStatus())->get($this->request->get['statusCode']);
 
-        if (in_array($orderStatusId, self::ORDERSTATUS_PENDING) || $orderStatusId == self::ORDERSTATUS_PAID || in_array($orderStatusId, self::ORDERSTATUS_AUTHORIZED) || $orderStatusId == self::ORDERSTATUS_VERIFY) {
+        if ($orderStatusId == PayStatus::PENDING || $orderStatusId == PayStatus::PAID || $orderStatusId == PayStatus::AUTHORIZE || $orderStatusId == PayStatus::VERIFY) {
             $this->response->redirect($this->url->link('checkout/success'));
-        } elseif ($orderStatusId == self::ORDERSTATUS_DENIED) {
+        } elseif ($this->request->get['statusCode'] == self::ORDERSTATUS_DENIED) {
             $this->response->redirect($this->url->link('extension/paynl/checkout/denied'));
         } else {
             $this->response->redirect($this->url->link('checkout/checkout'));

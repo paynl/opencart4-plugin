@@ -97,7 +97,7 @@ class PayConfig
         if ($core == 'custom') {
             return $this->openCart->config->get('payment_' . $this->code . '_custom_gateway');
         } elseif (!empty($core)) {
-            return 'https://' . $core;
+            return $core;
         }
     }
 
@@ -191,6 +191,6 @@ class PayConfig
     public function getTguList()
     {
         $config = (new ServiceGetConfigRequest($this->getServiceId()))->setConfig($this->getConfig())->start();
-        return $config->getTguList() ?? [];
+        return $config->getCores() ?? [];
     }
 }

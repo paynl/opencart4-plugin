@@ -15,7 +15,6 @@ class PayPaymentMethods
     public $code;
     public $route;
 
-    const METHOD_IDEAL = 10; // phpcs:ignore
     const METHOD_INSTORE = 1729; // phpcs:ignore
 
     const METHOD_AFTERPAY = 739; // phpcs:ignore
