@@ -75,7 +75,6 @@ class Paynl extends \Opencart\System\Engine\Controller
         if (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) {
             try {
                 $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
-                $sort_order = array();
                 foreach ($payPaymentMethods as $key => $method) {
                     $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
                     $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
@@ -100,7 +99,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                     $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
                     $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
                     $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
-                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;                    
+                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
                     $gateways[$method->getId()]['image'] = $image;
 
                     $gateways[$method->getId()]['name_translations'] = [];
@@ -122,8 +121,6 @@ class Paynl extends \Opencart\System\Engine\Controller
                         $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
                         $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
                     }
-
-                    $sort_order[$method->getId()] = (!empty($sortSetting)) ? $sortSetting : $key;
                 }
 
                 uasort($gateways, function ($a, $b) {
@@ -147,7 +144,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         // Settings
         $data['pay_order_description'] = $this->config->get('payment_' . $this->code . '_order_description');
         $data['pay_test_ip_address'] = $this->config->get('payment_' . $this->code . '_test_ip_address');
-        $data['current_ip'] = $_SERVER["REMOTE_ADDR"];       
+        $data['current_ip'] = $_SERVER["REMOTE_ADDR"];
         $data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
         $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
         $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
@@ -284,6 +281,12 @@ class Paynl extends \Opencart\System\Engine\Controller
         }
     }
 
+    /**
+     * @param string $route
+     * @param array $data
+     * @param string $template_code
+     * @return void
+     */
     public function order_info_history_before(&$route, &$data, &$template_code)
     {
         $payHistory = $this->payTransaction->getHistory($this->request->get['order_id']);
@@ -307,6 +310,11 @@ class Paynl extends \Opencart\System\Engine\Controller
         }
     }
 
+    /**
+     * @param string $route
+     * @param string $event_template
+     * @return mixed
+     */
     protected function getTemplate($route, $event_template)
     {
 
@@ -323,6 +331,12 @@ class Paynl extends \Opencart\System\Engine\Controller
         exit;
     }
 
+    /**
+     * @param string $route
+     * @param array $data
+     * @param string $template_code
+     * @return null
+     */
     public function order_info_before(&$route, &$data, &$template_code)
     {
 
@@ -341,14 +355,14 @@ class Paynl extends \Opencart\System\Engine\Controller
             $payContent .= '{{ footer }}';
             $template = str_replace('{{ footer }}', $payContent . json_encode($payTransaction), $template);
 
-            $template_code = $template;       
+            $template_code = $template;
 
-            if(!empty($this->config->get('payment_' . $this->code . '_paymentmethod_' . $payOrder->getPaymentMethod() . '_name'))){
+            if (!empty($this->config->get('payment_' . $this->code . '_paymentmethod_' . $payOrder->getPaymentMethod() . '_name'))) {
                 $paymentMethodName = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $payOrder->getPaymentMethod() . '_name');
             } elseif ($payOrder->getPaymentMethod() == 613) {
                 $paymentMethodName = 'Sandbox';
-            }                
-          
+            }
+
             $data['paynl_order_id'] = $this->request->get['order_id'];
             $data['paynl_transaction_id'] = $payTransaction->getOrderId();
             $data['paynl_status_code'] = $payTransaction->getStatusCode();
@@ -357,8 +371,8 @@ class Paynl extends \Opencart\System\Engine\Controller
             $data['paynl_currency'] = $payOrder->getCurrency();
             $data['paynl_amount'] = number_format((float) $payOrder->getAmount(), 2, '.', '');
             $data['paynl_amount_captured'] = number_format((float) ($payOrder->getCapturedAmount()->getValue() / 100), 2, '.', '');
-            $data['paynl_cart_amount'] = number_format((float) $dbTransaction['amount'], 2, '.', '');            
-       
+            $data['paynl_cart_amount'] = number_format((float) $dbTransaction['amount'], 2, '.', '');
+
             $data['show_refund'] = ($payTransaction->isPaid() && $payOrder->isPaid());
             $data['show_capture'] = ($payTransaction->isAuthorized() || $payTransaction->getStatus()['code'] == 97);
             $data['show_void'] = (($payTransaction->isAuthorized() || $payTransaction->getStatus()['code'] == 97) && $data['paynl_amount_captured'] == 0);
@@ -375,14 +389,14 @@ class Paynl extends \Opencart\System\Engine\Controller
             } else {
                 $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|capture', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
                 $data['ajax_url_void'] = $this->url->link('extension/paynl/payment/' . $this->code . '|void', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
-                
-                $data['paynl_amount_value'] = number_format((float) ($data['paynl_amount'] -  $data['paynl_amount_captured']), 2, '.', '');    
 
-                $data['text_button'] = $this->language->get('text_capture');                
+                $data['paynl_amount_value'] = number_format((float) ($data['paynl_amount'] - $data['paynl_amount_captured']), 2, '.', '');
+
+                $data['text_button'] = $this->language->get('text_capture');
                 $data['text_description'] = $this->language->get('text_capture_desc');
                 $data['text_confirm'] = $this->language->get('text_capture_confirm');
 
-                $data['text_button_void'] = $this->language->get('text_void');   
+                $data['text_button_void'] = $this->language->get('text_void');
                 $data['text_confirm_void'] = $this->language->get('text_void_confirm');
             }
 
@@ -544,6 +558,9 @@ class Paynl extends \Opencart\System\Engine\Controller
         die(json_encode(['success' => $result]));
     }
 
+    /**
+     * @return array
+     */
     public function getShippingMethods()
     {
         $method_data = [];

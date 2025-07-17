@@ -28,7 +28,8 @@ class Paynl extends \Opencart\System\Engine\Model
             `pay_status` varchar(255) DEFAULT NULL,
             `pay_action` varchar(255) DEFAULT NULL,
             `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-            PRIMARY KEY (`id`)
+            PRIMARY KEY (`id`),
+            INDEX (`order_id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
 
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "pay_processing` (
@@ -36,7 +37,8 @@ class Paynl extends \Opencart\System\Engine\Model
             `payOrderId` varchar(255) DEFAULT NULL,           
             `created_at` datetime NOT NULL DEFAULT current_timestamp(),
             PRIMARY KEY (`id`),
-            UNIQUE (`payOrderId`)
+            UNIQUE (`payOrderId`),
+            INDEX (`created_at`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
     }
 
@@ -47,5 +49,6 @@ class Paynl extends \Opencart\System\Engine\Model
     {
         $this->db->query("DROP TABLE `" . DB_PREFIX . "pay_transactions`");
         $this->db->query("DROP TABLE `" . DB_PREFIX . "pay_history`");
+        $this->db->query("DROP TABLE `" . DB_PREFIX . "pay_processing`");
     }
 }

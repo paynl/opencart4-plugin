@@ -113,7 +113,7 @@ class PayHelper
         if (!empty($data)) {
             foreach ($data as $key => $dataText) {
                 if (is_array($dataText)) {
-                    $dataText = print_r($dataText);
+                    $dataText = print_r($dataText, true);
                 }
                 $message .= ', ' . $key . ': ' . $dataText;
             }

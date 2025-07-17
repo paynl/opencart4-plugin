@@ -23,6 +23,7 @@ class Webhooks extends \Opencart\System\Engine\Controller
 
     /**
      * @param \Opencart\System\Engine\Registry $registry
+     * @return void
      */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
@@ -34,6 +35,11 @@ class Webhooks extends \Opencart\System\Engine\Controller
         parent::__construct($registry);
     }
 
+    /**
+     * @param string $route
+     * @param array $data
+     * @return void
+     */
     public function onOrderStatusChange(&$route, &$data)
     {
         $this->load->model('checkout/order');
