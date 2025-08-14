@@ -344,16 +344,27 @@ class Paynl extends \Opencart\System\Engine\Controller
         if ($transaction) {
 
             $dbTransaction = $transaction['db'];
-            $payOrder = $transaction['orderStatus'];
-            $payTransaction = $this->payTransaction->getTransactionStatus($dbTransaction['transaction_id']);
+            $payOrder = $transaction['orderStatus'];    
 
+            if (empty($payOrder) || ($payOrder instanceof \PayNL\Sdk\Model\Pay\PayOrder && ($payOrder->isPaid() || $payOrder->isAuthorized()))) {
+                $payGmsOrder = $this->payTransaction->getTransactionStatus($dbTransaction['transaction_id']);          
+                if ($payGmsOrder->isRefunded() || empty($payOrder)) {
+                    $payOrder = $payGmsOrder;
+                }
+                $alreadyRefunded = $payGmsOrder->getAmountRefunded();
+            }
+
+            $payOrderId = $dbTransaction['transaction_id'];
+            $payTransactionId = $payOrder->getOrderId();           
+            $status = $payOrder->getStatusName();
+       
             $template = $this->getTemplate($route, $template_code);
 
             $payContent = '<link type="text/css" href="../extension/paynl/admin/view/stylesheet/order.css" rel="stylesheet" media="screen">';
             $payContent .= '<script type="text/javascript" src="../extension/paynl/admin/view/javascript/order.js"></script>';
             $payContent .= file_get_contents(DIR_EXTENSION . 'paynl/admin/view/template/payment/order.twig');
             $payContent .= '{{ footer }}';
-            $template = str_replace('{{ footer }}', $payContent . json_encode($payTransaction), $template);
+            $template = str_replace('{{ footer }}', $payContent, $template);
 
             $template_code = $template;
 
@@ -363,32 +374,37 @@ class Paynl extends \Opencart\System\Engine\Controller
                 $paymentMethodName = 'Sandbox';
             }
 
-            $data['paynl_order_id'] = $this->request->get['order_id'];
-            $data['paynl_transaction_id'] = $payTransaction->getOrderId();
-            $data['paynl_status_code'] = $payTransaction->getStatusCode();
-            $data['paynl_status_name'] = $payTransaction->getStatusName();
+            $data['paynl_order_id'] = $payOrderId;
+            $data['paynl_transaction_id'] = $payTransactionId;        
+            $data['paynl_status_name'] = $status;
             $data['Paynl_payment_method_name'] = $paymentMethodName ?? '';
             $data['paynl_currency'] = $payOrder->getCurrency();
-            $data['paynl_amount'] = number_format((float) $payOrder->getAmount(), 2, '.', '');
-            $data['paynl_amount_captured'] = number_format((float) ($payOrder->getCapturedAmount()->getValue() / 100), 2, '.', '');
+            $data['paynl_amount'] = number_format((float) $payOrder->getAmount(), 2, '.', '');            
             $data['paynl_cart_amount'] = number_format((float) $dbTransaction['amount'], 2, '.', '');
 
-            $data['show_refund'] = ($payTransaction->isPaid() && $payOrder->isPaid());
-            $data['show_capture'] = ($payTransaction->isAuthorized() || $payTransaction->getStatus()['code'] == 97);
-            $data['show_void'] = (($payTransaction->isAuthorized() || $payTransaction->getStatus()['code'] == 97) && $data['paynl_amount_captured'] == 0);
+            $data['show_refund'] = ($payOrder->isPaid() || $payOrder->isRefundedPartial());
+            $data['show_capture'] = ($payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97);
+            $data['show_void'] = (($payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97) && $data['paynl_amount_captured'] == 0);
 
             $this->load->language($this->route);
 
-            if ($payTransaction->isPaid() && $payOrder->isPaid()) {
-                $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|refund', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
+            if ($payOrder->isPaid() || $payOrder->isRefundedPartial()) {
+                           
+                $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|refund', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransactionId);
                 $data['paynl_amount_value'] = number_format((float) ($payOrder->getAmount()), 2, '.', '');
-
+                if ($payOrder->getCurrency() == 'EUR') {
+                    $data['paynl_amount_refunded'] = $alreadyRefunded;
+                    $data['paynl_amount'] = number_format((float) $payOrder->getAmount() - $alreadyRefunded, 2, '.', '');
+                    $data['paynl_amount_value'] = number_format((float) ($payOrder->getAmount() - $alreadyRefunded), 2, '.', '');
+                }     
                 $data['text_button'] = $this->language->get('text_refund');
                 $data['text_description'] = $this->language->get('text_refund_desc');
                 $data['text_confirm'] = $this->language->get('text_refund_confirm');
             } else {
-                $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|capture', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
-                $data['ajax_url_void'] = $this->url->link('extension/paynl/payment/' . $this->code . '|void', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransaction->getOrderId());
+                $data['paynl_amount_captured'] = number_format((float) ($payOrder->getCapturedAmount()->getValue() / 100), 2, '.', '');
+                
+                $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|capture', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransactionId);
+                $data['ajax_url_void'] = $this->url->link('extension/paynl/payment/' . $this->code . '|void', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransactionId);
 
                 $data['paynl_amount_value'] = number_format((float) ($data['paynl_amount'] - $data['paynl_amount_captured']), 2, '.', '');
 
