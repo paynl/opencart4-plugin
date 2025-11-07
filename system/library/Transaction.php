@@ -121,7 +121,7 @@ class PayTransaction
 
         $this->addHistory($orderId, $transactionId, $message, $status, $payOrder->getStatusName(), $action);
 
-        if ($this->payConfig->shouldFollowPayment() && $payOrder->isPaid() && $payOrder->isPaid()) {
+        if ($this->payConfig->shouldFollowPayment() && $payOrder->isPaid() ) {
             $this->getRealPaymentMethod($orderId);
         }
 
@@ -218,7 +218,7 @@ class PayTransaction
         } elseif (!empty($this->openCart->session->data['shipping_address'])) {
             $address = $this->openCart->session->data['shipping_address'];
         }
-        if (empty($toggle_address)) {
+        if (empty($address)) {
             $this->openCart->load->model('account/address');
             if ($this->openCart->customer->getAddressId()) {
                 $address = $this->openCart->model_account_address->getAddress($this->openCart->customer->getId(), $this->openCart->customer->getAddressId()) ?: array();
