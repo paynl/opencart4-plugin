@@ -33,9 +33,19 @@ class Finish extends \Opencart\System\Engine\Controller
      * @return void
      */
     public function finish()
-    {
+    {        
+        $config = new \Opencart\System\Engine\Config();
+        $option = [
+            'expires' => 0,
+            'path' => $config->get('session_path'),
+            'domain' => $config->get('session_domain'),
+            'secure' => !empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] != 'off',
+            'httponly' => false,
+            'SameSite' => $config->get('session_samesite')
+        ];
+        setcookie('OCSESSID', $this->request->get['session_id'], $option);
+   
         $this->load->language($this->route);
-        $payOrderId = $this->request->get['id'];
         $orderStatusId = (new PayStatus())->get($this->request->get['statusCode']);
 
         if ($orderStatusId == PayStatus::PENDING || $orderStatusId == PayStatus::PAID || $orderStatusId == PayStatus::AUTHORIZE || $orderStatusId == PayStatus::VERIFY) {
@@ -45,6 +55,5 @@ class Finish extends \Opencart\System\Engine\Controller
         } else {
             $this->response->redirect($this->url->link('checkout/checkout'));
         }
-        die();
     }
 }

@@ -141,6 +141,35 @@ $(document).ready(function () {
             toggleObscured(input)
         }).insertAfter(input);
     })
+
+    if ($('input[name="payment_paynl_tokencode"]').length && $('input[name="payment_paynl_apitoken"]').length && $('input[name="payment_paynl_serviceid"]').length) {
+        $loadedTokencode = $('input[name="payment_paynl_tokencode"]').val();
+        $loadedApitoken = $('input[name="payment_paynl_apitoken"]').val();
+        $loadedServiceId = $('input[name="payment_paynl_serviceid"]').val();
+
+        $(document).on('submit', 'form[action*="route=extension/paynl/payment/paynl|save"]', function (e) {
+            $currentTokencode = $('input[name="payment_paynl_tokencode"]').val();
+            $currentApitoken = $('input[name="payment_paynl_apitoken"]').val();
+            $currentServiceId = $('input[name="payment_paynl_serviceid"]').val();
+
+            var $form = $(this);
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'post',
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function (json) {
+                    if (json.success && !json.error) {
+                        if ($loadedTokencode !== $currentTokencode || $loadedApitoken !== $currentApitoken || $loadedServiceId !== $currentServiceId) {
+                            alert('Your API credentials have been updated. The page will now reload to refresh all payment methods.');
+                            location.reload();
+                        }
+                    }
+                }
+            });
+            return false;
+        });
+    }
 })
 
 function toggleObscured(element) {
