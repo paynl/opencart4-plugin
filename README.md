@@ -15,7 +15,7 @@ This plugin provides a wide scale of different payment methods for your OpenCart
 
 # Requirements
 
-    PHP 8.0 or higher
+    PHP 8.1 or higher
     OpenCart 4.1.0.0 or higher
 
 
