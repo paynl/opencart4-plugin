@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4dc72cf3f1adbd3eb0734805003cc258",
+    "content-hash": "63f7e793bf53344c902f2baf9a7fb514",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -333,16 +333,16 @@
         },
         {
             "name": "paynl/php-sdk",
-            "version": "1.0.2",
+            "version": "1.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paynl/php-sdk.git",
-                "reference": "5cec49d219b1c0260f1abed2ac9b61cd270c46c8"
+                "reference": "9a132cc3780e5f20f085b4df92735bad53cf365f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paynl/php-sdk/zipball/5cec49d219b1c0260f1abed2ac9b61cd270c46c8",
-                "reference": "5cec49d219b1c0260f1abed2ac9b61cd270c46c8",
+                "url": "https://api.github.com/repos/paynl/php-sdk/zipball/9a132cc3780e5f20f085b4df92735bad53cf365f",
+                "reference": "9a132cc3780e5f20f085b4df92735bad53cf365f",
                 "shasum": ""
             },
             "require": {
@@ -387,9 +387,9 @@
             "support": {
                 "email": "webshop@pay.nl",
                 "issues": "https://github.com/paynl/php-sdk/issues",
-                "source": "https://github.com/paynl/php-sdk/tree/v1.0.2"
+                "source": "https://github.com/paynl/php-sdk/tree/v1.0.8"
             },
-            "time": "2025-06-26T10:26:43+00:00"
+            "time": "2025-11-10T13:29:44+00:00"
         },
         {
             "name": "psr/container",
@@ -719,10 +719,10 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": {},
-    "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }
