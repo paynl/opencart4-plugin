@@ -52,30 +52,31 @@ class Paynl extends \Opencart\System\Engine\Model
     {
         $option_data = [];
         try {
-            $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
+            $payPaymentMethods = json_decode($this->config->get('payment_' . $this->code . '_gateways'));
             foreach ($payPaymentMethods as $key => $method) {
                 if ($this->checkPaymentMethod($method) || $ignoreChecks) {
-                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
-                    $nameTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $this->config->get('config_language'));
-                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
-                    $descriptionTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $this->config->get('config_language'));
-                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
+
+                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_name');
+                    $nameTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_name_' . $this->config->get('config_language'));
+                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_description');
+                    $descriptionTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_description_' . $this->config->get('config_language'));
+                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_sort');
                     $sort = (!empty($sortSetting)) ? $sortSetting : $key;
 
-                    $name = (!empty($nameSetting)) ? $nameSetting : $method->getName();
-                    $description = (!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription();
+                    $name = (!empty($nameSetting)) ? $nameSetting : $method->name;
+                    $description = (!empty($descriptionSetting)) ? $descriptionSetting : $method->description;
 
                     $option_data[$sort] = [
                         'code' => $this->code . '.' . $sort,
-                        'paymentOptionId' => $method->getId(),
+                        'paymentOptionId' => $method->id,
                         'name' => (!empty($nameTranslatedSetting)) ? $nameTranslatedSetting : $name,
                         'description' => (!empty($descriptionTranslatedSetting)) ? $descriptionTranslatedSetting : $description,
                         'sort' => (!empty($sortSetting)) ? $sortSetting : $key,
-                        'issuers' => $method->getOptions() ?? null,
-                        'showIssuers' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers'),
-                        'showDOB' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob'),
-                        'showCOC' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc'),
-                        'showVAT' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat'),
+                        'issuers' => $method->options ?? null,
+                        'showIssuers' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_issuers'),
+                        'showDOB' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_dob'),
+                        'showCOC' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_coc'),
+                        'showVAT' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_vat'),
                     ];
                 }
             }
@@ -105,21 +106,21 @@ class Paynl extends \Opencart\System\Engine\Model
      */
     public function checkPaymentMethod($method)
     {
+        $active = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_active');
 
-        $active = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
         if ($active !== '1') {
             return false;
         }
 
         $total = $this->cart->getSubTotal();
-        $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
-        $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+        $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_minamount');
+        $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_maxamount');
         if ($total < $minAmountSetting || $total > $maxAmountSetting) {
             return false;
         }
 
         $countryId = $this->getCountryId();
-        $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
+        $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_countries');
         if (!empty($countriesSetting)) {
             if (!in_array($countryId, $countriesSetting)) {
                 return false;
@@ -127,7 +128,7 @@ class Paynl extends \Opencart\System\Engine\Model
         }
 
         $shippingMethod = $this->session->data['shipping_method'];
-        $allowedShippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
+        $allowedShippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_allowed_shipping');
         if (!empty($allowedShippingSetting)) {
             $allowedShippingCodes = [];
             foreach ($allowedShippingSetting as $shippingSetting) {
@@ -139,7 +140,7 @@ class Paynl extends \Opencart\System\Engine\Model
         }
 
         $company = $this->getCompany();
-        $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
+        $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_customer_type');
         if (!empty($customerTypeSetting)) {
             if ($customerTypeSetting == 1 && !empty($company)) {
                 return false;
@@ -149,7 +150,7 @@ class Paynl extends \Opencart\System\Engine\Model
         }
 
         $geozoneId = $this->getGeoZoneId();
-        $geozoneSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_geozone');
+        $geozoneSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_geozone');
         if (!empty($geozoneSetting) && $geozoneSetting != $geozoneId) {
             return false;
         }

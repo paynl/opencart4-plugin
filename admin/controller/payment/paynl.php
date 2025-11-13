@@ -71,65 +71,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
         $data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
 
-        $gateways = [];
-        if (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) {
-            try {
-                $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
-                foreach ($payPaymentMethods as $key => $method) {
-                    $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
-                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
-                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
-                    $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
-                    $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
-                    $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
-                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
-                    $image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
-
-                    $gateways[$method->getId()] = [];
-
-                    $gateways[$method->getId()]['id'] = $method->getId();
-                    $gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
-                    $gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
-                    $gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
-                    $gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
-                    $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
-                    $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
-                    $gateways[$method->getId()]['countries'] = $countriesSetting;
-                    $shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
-                    $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
-                    $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
-                    $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
-                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
-                    $gateways[$method->getId()]['image'] = $image;
-
-                    $gateways[$method->getId()]['name_translations'] = [];
-                    $gateways[$method->getId()]['description_translations'] = [];
-
-                    foreach ($this->model_localisation_language->getLanguages() as $language) {
-                        $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
-                        $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
-                    }
-
-                    if ($this->paymentMethods->showIssuersField($method->getId())) {
-                        $gateways[$method->getId()]['showIssuersField'] = true;
-                        $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
-                    }
-
-                    if ($this->paymentMethods->showBusinessFields($method->getId())) {
-                        $gateways[$method->getId()]['showBusinessFields'] = true;
-                        $gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
-                        $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
-                        $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
-                    }
-                }
-
-                uasort($gateways, function ($a, $b) {
-                    return (int) $a['sort'] - (int) $b['sort'];
-                });
-            } catch (\Exception $e) {
-                $this->helper->logCritical('Admin Payment methods: failed to load', ['error' => $e->getMessage()]);
-            }
-        }
+        $gateways = $this->getGateways($data['apitoken'], $data['serviceid'], $data['tokencode']);
 
         $data['pay_paymentmethods'] = $gateways;
 
@@ -205,12 +147,87 @@ class Paynl extends \Opencart\System\Engine\Controller
             if (!$json) {
                 $this->load->model('setting/setting');
                 $store_id = $this->request->get['store_id'] ?? 0;
-                $this->model_setting_setting->editSetting('payment_' . $this->code, $this->request->post, (int) $store_id);
+                $data = $this->request->post;
+                $data['payment_paynl_gateways'] = json_encode($this->getGateways($apitoken, $serviceid, $tokencode));
+                $this->model_setting_setting->editSetting('payment_' . $this->code, $data, (int) $store_id);
                 $json['success'] = $this->language->get('text_success');
             }
 
             $this->response->addHeader('Content-Type: application/json');
             $this->response->setOutput(json_encode($json));
+        }
+    }
+
+    public function getGateways($apitoken, $serviceid, $tokencode)
+    {
+        $gateways = [];
+
+        if (!empty($apitoken) && !empty($serviceid) && !empty($tokencode)) {
+
+            try {
+                $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
+                foreach ($payPaymentMethods as $key => $method) {
+                    $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
+                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
+                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
+                    $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
+                    $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+                    $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
+                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
+                    $image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
+
+                    $gateways[$method->getId()] = [];
+
+                    $gateways[$method->getId()]['id'] = $method->getId();
+                    $gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
+                    $gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
+                    $gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
+                    $gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
+                    $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
+                    $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
+                    $gateways[$method->getId()]['countries'] = $countriesSetting;
+                    $shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
+                    $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
+                    $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
+                    $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
+                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
+                    $gateways[$method->getId()]['image'] = $image;
+
+                    try {
+                        $gateways[$method->getId()]['options'] = $method->getOptions();
+                    } catch (\Throwable $th) {
+                        $gateways[$method->getId()]['options'] = null;
+                    }
+
+                    $gateways[$method->getId()]['name_translations'] = [];
+                    $gateways[$method->getId()]['description_translations'] = [];
+
+                    foreach ($this->model_localisation_language->getLanguages() as $language) {
+                        $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
+                        $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
+                    }
+
+                    if ($this->paymentMethods->showIssuersField($method->getId())) {
+                        $gateways[$method->getId()]['showIssuersField'] = true;
+                        $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
+                    }
+
+                    if ($this->paymentMethods->showBusinessFields($method->getId())) {
+                        $gateways[$method->getId()]['showBusinessFields'] = true;
+                        $gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
+                        $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
+                        $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
+                    }
+                }
+
+                uasort($gateways, function ($a, $b) {
+                    return (int) $a['sort'] - (int) $b['sort'];
+                });
+            } catch (\Exception $e) {
+                $this->helper->logCritical('Admin Payment methods: failed to load', ['error' => $e->getMessage()]);
+            }
+
+            return $gateways;
         }
     }
 
@@ -344,20 +361,24 @@ class Paynl extends \Opencart\System\Engine\Controller
         if ($transaction) {
 
             $dbTransaction = $transaction['db'];
-            $payOrder = $transaction['orderStatus'];    
+            $payOrder = $transaction['orderStatus'];
 
             if (empty($payOrder) || ($payOrder instanceof \PayNL\Sdk\Model\Pay\PayOrder && ($payOrder->isPaid() || $payOrder->isAuthorized()))) {
-                $payGmsOrder = $this->payTransaction->getTransactionStatus($dbTransaction['transaction_id']);          
+                $payGmsOrder = $this->payTransaction->getTransactionStatus($dbTransaction['transaction_id']);
                 if ($payGmsOrder->isRefunded() || empty($payOrder)) {
                     $payOrder = $payGmsOrder;
                 }
-                $alreadyRefunded = $payGmsOrder->getAmountRefunded();
+                try {
+                    $alreadyRefunded = $payGmsOrder->getAmountRefunded();
+                } catch (\Throwable $th) {
+                    $alreadyRefunded = 0;
+                }
             }
 
             $payOrderId = $dbTransaction['transaction_id'];
-            $payTransactionId = $payOrder->getOrderId();           
+            $payTransactionId = $payOrder->getOrderId();
             $status = $payOrder->getStatusName();
-       
+
             $template = $this->getTemplate($route, $template_code);
 
             $payContent = '<link type="text/css" href="../extension/paynl/admin/view/stylesheet/order.css" rel="stylesheet" media="screen">';
@@ -375,34 +396,33 @@ class Paynl extends \Opencart\System\Engine\Controller
             }
 
             $data['paynl_order_id'] = $payOrderId;
-            $data['paynl_transaction_id'] = $payTransactionId;        
+            $data['paynl_transaction_id'] = $payTransactionId;
             $data['paynl_status_name'] = $status;
             $data['Paynl_payment_method_name'] = $paymentMethodName ?? '';
             $data['paynl_currency'] = $payOrder->getCurrency();
-            $data['paynl_amount'] = number_format((float) $payOrder->getAmount(), 2, '.', '');            
+            $data['paynl_amount'] = number_format((float) $payOrder->getAmount(), 2, '.', '');
             $data['paynl_cart_amount'] = number_format((float) $dbTransaction['amount'], 2, '.', '');
 
             $data['show_refund'] = ($payOrder->isPaid() || $payOrder->isRefundedPartial());
             $data['show_capture'] = ($payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97);
-            $data['show_void'] = (($payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97) && $data['paynl_amount_captured'] == 0);
 
             $this->load->language($this->route);
 
-            if ($payOrder->isPaid() || $payOrder->isRefundedPartial()) {
-                           
+            if ($payOrder->isPaid() || $payOrder->isRefundedPartial() || $payOrder->isRefunded()) {
+
                 $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|refund', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransactionId);
                 $data['paynl_amount_value'] = number_format((float) ($payOrder->getAmount()), 2, '.', '');
                 if ($payOrder->getCurrency() == 'EUR') {
                     $data['paynl_amount_refunded'] = $alreadyRefunded;
                     $data['paynl_amount'] = number_format((float) $payOrder->getAmount() - $alreadyRefunded, 2, '.', '');
                     $data['paynl_amount_value'] = number_format((float) ($payOrder->getAmount() - $alreadyRefunded), 2, '.', '');
-                }     
+                }
                 $data['text_button'] = $this->language->get('text_refund');
                 $data['text_description'] = $this->language->get('text_refund_desc');
                 $data['text_confirm'] = $this->language->get('text_refund_confirm');
             } else {
                 $data['paynl_amount_captured'] = number_format((float) ($payOrder->getCapturedAmount()->getValue() / 100), 2, '.', '');
-                
+
                 $data['ajax_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|capture', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransactionId);
                 $data['ajax_url_void'] = $this->url->link('extension/paynl/payment/' . $this->code . '|void', 'user_token=' . $this->session->data['user_token'] . '&transaction_id=' . $payTransactionId);
 
@@ -411,6 +431,8 @@ class Paynl extends \Opencart\System\Engine\Controller
                 $data['text_button'] = $this->language->get('text_capture');
                 $data['text_description'] = $this->language->get('text_capture_desc');
                 $data['text_confirm'] = $this->language->get('text_capture_confirm');
+
+                $data['show_void'] = (($payOrder->isAuthorized() || $payOrder->getStatus()['code'] == 97) && $data['paynl_amount_captured'] == 0);
 
                 $data['text_button_void'] = $this->language->get('text_void');
                 $data['text_confirm_void'] = $this->language->get('text_void_confirm');
