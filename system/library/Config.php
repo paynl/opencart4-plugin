@@ -142,16 +142,15 @@ class PayConfig
         return ($this->openCart->config->get('payment_' . $this->code . '_follow_payment') == 1);
     }
 
-    /**
-     * @return string||null
-     */
+	/**
+	 * @return mixed|string
+	 */
     public function getVersion()
     {
         $json = file_get_contents(DIR_EXTENSION . 'paynl/install.json');
         $jsonData = json_decode($json, true);
 
-        $version = $jsonData['version'] ?? null;
-        return $version;
+        return $jsonData['version'] ?? '';
     }
 
     /**
@@ -175,8 +174,8 @@ class PayConfig
      */
     public function getObject()
     {
-        $object_string = 'opencart 4 ';
-        $object_string .= $this->getVersion() ?? '-';
+		$object_string = 'opencart4';
+		$object_string .= ' ' . $this->getVersion() ?? '';
         $object_string .= ' | ';
         $object_string .= VERSION ?? '-';
         $object_string .= ' | ';
