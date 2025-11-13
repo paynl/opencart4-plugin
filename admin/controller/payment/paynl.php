@@ -5,11 +5,36 @@ namespace Opencart\Admin\Controller\Extension\paynl\Payment;
 require_once DIR_EXTENSION . 'paynl/vendor/autoload.php';
 require_once DIR_EXTENSION . 'paynl/system/library/Autoload.php';
 
+use Config;
+use Document;
+use Language;
+use Loader;
 use Opencart\System\Library\PayHelper;
 use Opencart\System\Library\PayConfig;
 use Opencart\System\Library\PayTransaction;
 use Opencart\System\Library\PayPaymentMethods;
+use Registry;
+use Response;
+use Session;
+use Request;
+use Url;
 
+/**
+ * @property Document $document
+ * @property Language $language
+ * @property Loader $load
+ * @property Url $url
+ * @property Session $session
+ * @property Response $response
+ * @property Request $request
+ * @property Config $config
+ * @property Registry $registry
+ *
+ * @property \Opencart\Admin\Model\Localisation\Language $model_localisation_language
+ * @property \Opencart\Admin\Model\Localisation\GeoZone $model_localisation_geo_zone
+ * @property \Opencart\Admin\Model\Localisation\Country $model_localisation_country
+ *
+ */
 class Paynl extends \Opencart\System\Engine\Controller
 {
     private $code;
@@ -28,208 +53,208 @@ class Paynl extends \Opencart\System\Engine\Controller
         $this->helper = new PayHelper($this);
         $this->payTransaction = new PayTransaction($this);
         $this->paymentMethods = new PayPaymentMethods($this);
-        $this->code = $this->payConfig->code;
-        $this->route = $this->payConfig->route;
-        parent::__construct($registry);
-    }
+		$this->code = $this->payConfig->code;
+		$this->route = $this->payConfig->route;
+		parent::__construct($registry);
+	}
 
-    /**
-     * @return void
-     */
-    public function index(): void
+	/**
+	 * @return void
+	 */
+	public function index(): void
+	{
+		$this->load->language($this->route);
+
+		$this->document->setTitle($this->language->get('heading_title_' . $this->code));
+		$this->document->addStyle('../extension/paynl/admin/view/stylesheet/pay.css');
+		$this->document->addScript('../extension/paynl/admin/view/javascript/jquery-ui/jquery-ui.js');
+		$this->document->addScript('../extension/paynl/admin/view/javascript/pay.js');
+
+		$data['breadcrumbs'] = [];
+
+		$data['breadcrumbs'][] = ['text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])];
+		$data['breadcrumbs'][] = ['text' => $this->language->get('text_extension'), 'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')]; // phpcs:ignore
+		$data['breadcrumbs'][] = ['text' => $this->language->get('heading_title'), 'href' => $this->url->link($this->route, 'user_token=' . $this->session->data['user_token'])];
+
+		$data['save'] = $this->url->link('extension/paynl/payment/' . $this->code . '|save', 'user_token=' . $this->session->data['user_token']);
+		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
+
+		$data['payment_' . $this->code . '_status'] = $this->config->get('payment_' . $this->code . '_status');
+		$data['payment_' . $this->code . '_sort_order'] = $this->config->get('payment_' . $this->code . '_sort_order');
+
+		$data['apitoken'] = $this->config->get('payment_' . $this->code . '_apitoken');
+		$data['serviceid'] = $this->config->get('payment_' . $this->code . '_serviceid');
+		$data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
+		$data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
+		$data['pay_checkversion_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|version_check', 'user_token=' . $this->session->data['user_token']);
+		$data['pay_current_version'] = $this->payConfig->getVersion();
+
+		$this->load->model('localisation/language');
+		$data['languages'] = $this->model_localisation_language->getLanguages();
+
+		$data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
+		$data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
+		$data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
+
+		$gateways = $this->getGateways($data['apitoken'], $data['serviceid'], $data['tokencode']);
+
+		$data['pay_paymentmethods'] = $gateways;
+
+		$this->load->model('localisation/geo_zone');
+		$data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
+
+		$this->load->model('localisation/country');
+		$data['countries'] = $this->model_localisation_country->getCountries();
+
+		$data['shipping_methods'] = $this->getShippingMethods();
+
+		# Settings
+		$data['pay_order_description'] = $this->config->get('payment_' . $this->code . '_order_description');
+		$data['pay_test_ip_address'] = $this->config->get('payment_' . $this->code . '_test_ip_address');
+		$data['current_ip'] = $_SERVER["REMOTE_ADDR"];
+		$data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
+		$data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
+		$data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
+		$data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
+		$data['pay_logging_options'] = [
+			$this->helper::LOG_ALL => $this->language->get('text_logging_all'),
+			$this->helper::LOG_CRITICAL_NOTICE => $this->language->get('text_critical_notice'),
+			$this->helper::LOG_ONLY_CRITICAL => $this->language->get('text_critical_only'),
+			$this->helper::LOG_NONE => $this->language->get('text_no_logging')
+		];
+		$data['pay_custom_exchange_url'] = $this->config->get('payment_' . $this->code . '_custom_exchange_url');
+		$data['pay_auto_capture'] = $this->config->get('payment_' . $this->code . '_auto_capture');
+		$data['pay_auto_void'] = $this->config->get('payment_' . $this->code . '_auto_void');
+
+		# Suggestions
+		$data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
+		$data['pay_plugin_version'] = $this->payConfig->getObject();
+
+		$data['header'] = $this->load->controller('common/header');
+		$data['column_left'] = $this->load->controller('common/column_left');
+		$data['footer'] = $this->load->controller('common/footer');
+
+		$this->response->setOutput($this->load->view('extension/paynl/payment/' . $this->code, $data));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function save(): void
+	{
+		$this->load->language($this->route);
+
+		if (((string)$this->request->server['REQUEST_METHOD'] === 'POST')) {
+			$json = array();
+			if (!$this->user->hasPermission('modify', $this->route)) {
+				$json['error'] = $this->language->get('error_permission');
+			}
+
+			$tokencode = $this->request->post['payment_paynl_tokencode'];
+			$apitoken = $this->request->post['payment_paynl_apitoken'];
+			$serviceId = $this->request->post['payment_paynl_serviceid'];
+
+			if (empty($tokencode)) {
+				$json['error'] = $this->language->get('error_tokencode');
+			}
+			if (empty($apitoken)) {
+				$json['error'] = $this->language->get('error_apitoken');
+			}
+			if (empty($serviceId)) {
+				$json['error'] = $this->language->get('error_serviceid');
+			}
+			if (!$json) {
+				if (!$this->helper->validateCredentials($tokencode, $apitoken, $serviceId)) {
+					$json['error'] = 'Failed to connect with Pay. - Please check your credentials.';
+				}
+			}
+
+			if (!$json) {
+				$this->load->model('setting/setting');
+				$store_id = $this->request->get['store_id'] ?? 0;
+				$data = $this->request->post;
+				$data['payment_paynl_gateways'] = json_encode($this->getGateways($apitoken, $serviceId, $tokencode));
+				$this->model_setting_setting->editSetting('payment_' . $this->code, $data, (int)$store_id);
+				$json['success'] = $this->language->get('text_success');
+			}
+
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+		}
+	}
+
+    public function getGateways($apitoken, $serviceId, $tokencode)
     {
-        $this->load->language($this->route);
+		$gateways = [];
 
-        $this->document->setTitle($this->language->get('heading_title_' . $this->code));
-        $this->document->addStyle('../extension/paynl/admin/view/stylesheet/pay.css');
-        $this->document->addScript('../extension/paynl/admin/view/javascript/jquery-ui/jquery-ui.js');
-        $this->document->addScript('../extension/paynl/admin/view/javascript/pay.js');
+		if (!empty($apitoken) && !empty($serviceId) && !empty($tokencode)) {
 
-        $data['breadcrumbs'] = [];
+			try {
+				$payPaymentMethods = $this->paymentMethods->getPaymentOptions();
+				foreach ($payPaymentMethods as $key => $method) {
+					$activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
+					$nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
+					$descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
+					$minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
+					$maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
+					$countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
+					$sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
+					$image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
 
-        $data['breadcrumbs'][] = ['text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])];
-        $data['breadcrumbs'][] = ['text' => $this->language->get('text_extension'), 'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')]; // phpcs:ignore
-        $data['breadcrumbs'][] = ['text' => $this->language->get('heading_title'), 'href' => $this->url->link($this->route, 'user_token=' . $this->session->data['user_token'])];
+					$gateways[$method->getId()] = [];
 
-        $data['save'] = $this->url->link('extension/paynl/payment/' . $this->code . '|save', 'user_token=' . $this->session->data['user_token']);
-        $data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
+					$gateways[$method->getId()]['id'] = $method->getId();
+					$gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
+					$gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
+					$gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
+					$gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
+					$gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
+					$gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
+					$gateways[$method->getId()]['countries'] = $countriesSetting;
+					$shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
+					$customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
+					$gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
+					$gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
+					$gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
+					$gateways[$method->getId()]['image'] = $image;
 
-        $data['payment_' . $this->code . '_status'] = $this->config->get('payment_' . $this->code . '_status');
-        $data['payment_' . $this->code . '_sort_order'] = $this->config->get('payment_' . $this->code . '_sort_order');
+					try {
+						$gateways[$method->getId()]['options'] = $method->getOptions();
+					} catch (\Throwable $th) {
+						$gateways[$method->getId()]['options'] = null;
+					}
 
-        $data['apitoken'] = $this->config->get('payment_' . $this->code . '_apitoken');
-        $data['serviceid'] = $this->config->get('payment_' . $this->code . '_serviceid');
-        $data['tokencode'] = $this->config->get('payment_' . $this->code . '_tokencode');
-        $data['testmode'] = $this->config->get('payment_' . $this->code . '_testmode');
-        $data['pay_checkversion_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|version_check', 'user_token=' . $this->session->data['user_token']);
-        $data['pay_current_version'] = $this->payConfig->getVersion();
+					$gateways[$method->getId()]['name_translations'] = [];
+					$gateways[$method->getId()]['description_translations'] = [];
 
-        $this->load->model('localisation/language');
-        $data['languages'] = $this->model_localisation_language->getLanguages();
+					foreach ($this->model_localisation_language->getLanguages() as $language) {
+						$gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
+						$gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
+					}
 
-        $data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
-        $data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
-        $data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
+					if ($this->paymentMethods->showIssuersField($method->getId())) {
+						$gateways[$method->getId()]['showIssuersField'] = true;
+						$gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
+					}
 
-        $gateways = $this->getGateways($data['apitoken'], $data['serviceid'], $data['tokencode']);
+					if ($this->paymentMethods->showBusinessFields($method->getId())) {
+						$gateways[$method->getId()]['showBusinessFields'] = true;
+						$gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
+						$gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
+						$gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
+					}
+				}
 
-        $data['pay_paymentmethods'] = $gateways;
+				uasort($gateways, function ($a, $b) {
+					return (int)$a['sort'] - (int)$b['sort'];
+				});
+			} catch (\Exception $e) {
+				$this->helper->logCritical('Admin Payment methods: failed to load', ['error' => $e->getMessage()]);
+			}
 
-        $this->load->model('localisation/geo_zone');
-        $data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
-
-        $this->load->model('localisation/country');
-        $data['countries'] = $this->model_localisation_country->getCountries();
-
-        $data['shipping_methods'] = $this->getShippingMethods();
-
-        // Settings
-        $data['pay_order_description'] = $this->config->get('payment_' . $this->code . '_order_description');
-        $data['pay_test_ip_address'] = $this->config->get('payment_' . $this->code . '_test_ip_address');
-        $data['current_ip'] = $_SERVER["REMOTE_ADDR"];
-        $data['pay_screen_language'] = $this->config->get('payment_' . $this->code . '_screen_language');
-        $data['pay_follow_payment'] = $this->config->get('payment_' . $this->code . '_follow_payment');
-        $data['pay_logging'] = $this->config->get('payment_' . $this->code . '_logging');
-        $data['pay_logging_download'] = $this->url->link('extension/paynl/payment/' . $this->code . '|downloadLogs', 'user_token=' . $this->session->data['user_token']);
-        $data['pay_logging_options'] = [
-            $this->helper::LOG_ALL => $this->language->get('text_logging_all'),
-            $this->helper::LOG_CRITICAL_NOTICE => $this->language->get('text_critical_notice'),
-            $this->helper::LOG_ONLY_CRITICAL => $this->language->get('text_critical_only'),
-            $this->helper::LOG_NONE => $this->language->get('text_no_logging')
-        ];
-        $data['pay_custom_exchange_url'] = $this->config->get('payment_' . $this->code . '_custom_exchange_url');
-        $data['pay_auto_capture'] = $this->config->get('payment_' . $this->code . '_auto_capture');
-        $data['pay_auto_void'] = $this->config->get('payment_' . $this->code . '_auto_void');
-
-        # Suggestions
-        $data['pay_suggestions_url'] = $this->url->link('extension/paynl/payment/' . $this->code . '|suggestions', 'user_token=' . $this->session->data['user_token']);
-        $data['pay_plugin_version'] = $this->payConfig->getObject();
-
-        $data['header'] = $this->load->controller('common/header');
-        $data['column_left'] = $this->load->controller('common/column_left');
-        $data['footer'] = $this->load->controller('common/footer');
-
-        $this->response->setOutput($this->load->view('extension/paynl/payment/' . $this->code, $data));
-    }
-
-    /**
-     * @return void
-     */
-    public function save(): void
-    {
-        $this->load->language($this->route);
-
-        if (((string) $this->request->server['REQUEST_METHOD'] === 'POST')) {
-            $json = array();
-            if (!$this->user->hasPermission('modify', $this->route)) {
-                $json['error'] = $this->language->get('error_permission');
-            }
-
-            $tokencode = $this->request->post['payment_paynl_tokencode'];
-            $apitoken = $this->request->post['payment_paynl_apitoken'];
-            $serviceid = $this->request->post['payment_paynl_serviceid'];
-
-            if (empty($tokencode)) {
-                $json['error'] = $this->language->get('error_tokencode');
-            }
-            if (empty($apitoken)) {
-                $json['error'] = $this->language->get('error_apitoken');
-            }
-            if (empty($serviceid)) {
-                $json['error'] = $this->language->get('error_serviceid');
-            }
-            if (!$json) {
-                if (!$this->helper->validateCredentials($tokencode, $apitoken, $serviceid)) {
-                    $json['error'] = 'Failed to connect with Pay. - Please check your credentials.';
-                }
-            }
-
-            if (!$json) {
-                $this->load->model('setting/setting');
-                $store_id = $this->request->get['store_id'] ?? 0;
-                $data = $this->request->post;
-                $data['payment_paynl_gateways'] = json_encode($this->getGateways($apitoken, $serviceid, $tokencode));
-                $this->model_setting_setting->editSetting('payment_' . $this->code, $data, (int) $store_id);
-                $json['success'] = $this->language->get('text_success');
-            }
-
-            $this->response->addHeader('Content-Type: application/json');
-            $this->response->setOutput(json_encode($json));
-        }
-    }
-
-    public function getGateways($apitoken, $serviceid, $tokencode)
-    {
-        $gateways = [];
-
-        if (!empty($apitoken) && !empty($serviceid) && !empty($tokencode)) {
-
-            try {
-                $payPaymentMethods = $this->paymentMethods->getPaymentOptions();
-                foreach ($payPaymentMethods as $key => $method) {
-                    $activeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_active');
-                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name');
-                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description');
-                    $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_minamount');
-                    $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
-                    $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
-                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
-                    $image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
-
-                    $gateways[$method->getId()] = [];
-
-                    $gateways[$method->getId()]['id'] = $method->getId();
-                    $gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
-                    $gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
-                    $gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
-                    $gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
-                    $gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
-                    $gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
-                    $gateways[$method->getId()]['countries'] = $countriesSetting;
-                    $shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
-                    $customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
-                    $gateways[$method->getId()]['allowed_shipping'] = $shippingSetting;
-                    $gateways[$method->getId()]['customer_type'] = $customerTypeSetting;
-                    $gateways[$method->getId()]['sort'] = (!empty($sortSetting)) ? $sortSetting : $key;
-                    $gateways[$method->getId()]['image'] = $image;
-
-                    try {
-                        $gateways[$method->getId()]['options'] = $method->getOptions();
-                    } catch (\Throwable $th) {
-                        $gateways[$method->getId()]['options'] = null;
-                    }
-
-                    $gateways[$method->getId()]['name_translations'] = [];
-                    $gateways[$method->getId()]['description_translations'] = [];
-
-                    foreach ($this->model_localisation_language->getLanguages() as $language) {
-                        $gateways[$method->getId()]['name_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_name_' . $language['code']);
-                        $gateways[$method->getId()]['description_translations'][$language['code']] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_description_' . $language['code']);
-                    }
-
-                    if ($this->paymentMethods->showIssuersField($method->getId())) {
-                        $gateways[$method->getId()]['showIssuersField'] = true;
-                        $gateways[$method->getId()]['showIssuers'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_issuers');
-                    }
-
-                    if ($this->paymentMethods->showBusinessFields($method->getId())) {
-                        $gateways[$method->getId()]['showBusinessFields'] = true;
-                        $gateways[$method->getId()]['showBOD'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_dob');
-                        $gateways[$method->getId()]['showCOC'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_coc');
-                        $gateways[$method->getId()]['showVAT'] = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_show_vat');
-                    }
-                }
-
-                uasort($gateways, function ($a, $b) {
-                    return (int) $a['sort'] - (int) $b['sort'];
-                });
-            } catch (\Exception $e) {
-                $this->helper->logCritical('Admin Payment methods: failed to load', ['error' => $e->getMessage()]);
-            }
-
-            return $gateways;
-        }
-    }
+			return $gateways;
+		}
+	}
 
     /**
      * @return void
@@ -264,8 +289,8 @@ class Paynl extends \Opencart\System\Engine\Controller
     /**
      * @return void
      */
-    public function downloadLogs()
-    {
+    public function downloadLogs(): void
+	{
         if (file_exists(DIR_LOGS)) {
             if (class_exists('ZipArchive') && is_writable(DIR_LOGS)) {
                 $file = DIR_LOGS . '/logs_opencart4.zip';
