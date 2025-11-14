@@ -44,61 +44,66 @@ class Paynl extends \Opencart\System\Engine\Model
         return $method_data;
     }
 
-    /**
-     * @param array $address
-     * @return array
-     */
-    public function getMethods(array $address, $ignoreChecks = false): array
-    {
-        $option_data = [];
-        try {
-            $payPaymentMethods = json_decode($this->config->get('payment_' . $this->code . '_gateways'));
-            foreach ($payPaymentMethods as $key => $method) {
-                if ($this->checkPaymentMethod($method) || $ignoreChecks) {
+	/**
+	 * @param array $address
+	 * @param bool $ignoreChecks
+	 * @return array
+	 */
+	public function getMethods(array $address, bool $ignoreChecks = false): array
+	{
+		$option_data = [];
+		try {
+			$payPaymentMethods = json_decode($this->config->get('payment_' . $this->code . '_gateways'));
 
-                    $nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_name');
-                    $nameTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_name_' . $this->config->get('config_language'));
-                    $descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_description');
-                    $descriptionTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_description_' . $this->config->get('config_language'));
-                    $sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_sort');
-                    $sort = (!empty($sortSetting)) ? $sortSetting : $key;
+			if (!empty($payPaymentMethods) && is_object($payPaymentMethods)) {
 
-                    $name = (!empty($nameSetting)) ? $nameSetting : $method->name;
-                    $description = (!empty($descriptionSetting)) ? $descriptionSetting : $method->description;
+				foreach ($payPaymentMethods as $key => $method) {
 
-                    $option_data[$sort] = [
-                        'code' => $this->code . '.' . $sort,
-                        'paymentOptionId' => $method->id,
-                        'name' => (!empty($nameTranslatedSetting)) ? $nameTranslatedSetting : $name,
-                        'description' => (!empty($descriptionTranslatedSetting)) ? $descriptionTranslatedSetting : $description,
-                        'sort' => (!empty($sortSetting)) ? $sortSetting : $key,
-                        'issuers' => $method->options ?? null,
-                        'showIssuers' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_issuers'),
-                        'showDOB' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_dob'),
-                        'showCOC' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_coc'),
-                        'showVAT' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_vat'),
-                    ];
-                }
-            }
-            uasort($option_data, function ($a, $b) {
-                return (int) $a['sort'] - (int) $b['sort'];
-            });
-        } catch (\Exception $e) {
-            $this->helper->logCritical('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
-        }
+					if ($this->checkPaymentMethod($method) || $ignoreChecks) {
 
-        if (!empty($option_data)) {
-            $methods_data = array(
-                'code' => $this->code,
-                'name' => 'Pay. Payments',
-                'title' => "Pay. Payments",
-                'option' => $option_data,
-                'sort_order' => $this->config->get('payment_' . $this->code . '_sort_order'),
-            );
-            return $methods_data;
-        }
-        return [];
-    }
+						$nameSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_name');
+						$nameTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_name_' . $this->config->get('config_language'));
+						$descriptionSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_description');
+						$descriptionTranslatedSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_description_' . $this->config->get('config_language'));
+						$sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_sort');
+						$sort = (!empty($sortSetting)) ? $sortSetting : $key;
+
+						$name = (!empty($nameSetting)) ? $nameSetting : $method->name;
+						$description = (!empty($descriptionSetting)) ? $descriptionSetting : $method->description;
+
+						$option_data[$sort] = [
+							'code' => $this->code . '.' . $sort,
+							'paymentOptionId' => $method->id,
+							'name' => (!empty($nameTranslatedSetting)) ? $nameTranslatedSetting : $name,
+							'description' => (!empty($descriptionTranslatedSetting)) ? $descriptionTranslatedSetting : $description,
+							'sort' => (!empty($sortSetting)) ? $sortSetting : $key,
+							'issuers' => $method->options ?? null,
+							'showIssuers' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_issuers'),
+							'showDOB' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_dob'),
+							'showCOC' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_coc'),
+							'showVAT' => $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_show_vat'),
+						];
+					}
+				}
+			}
+			uasort($option_data, function ($a, $b) {
+				return (int)$a['sort'] - (int)$b['sort'];
+			});
+		} catch (\Exception $e) {
+			$this->helper->logCritical('Paymentmethods: failed to load', ['error' => $e->getMessage()]);
+		}
+
+		if (!empty($option_data)) {
+			return array(
+				'code' => $this->code,
+				'name' => 'Pay. Payments',
+				'title' => "Pay. Payments",
+				'option' => $option_data,
+				'sort_order' => $this->config->get('payment_' . $this->code . '_sort_order'),
+			);
+		}
+		return [];
+	}
 
     /**
      * @param string $method
