@@ -52,8 +52,7 @@ class PayTransaction
         try {
             $transactionStatusRequest = new TransactionStatusRequest($transactionId);
             $transactionStatusRequest->setConfig($this->payConfig->getConfig(true));
-            $transactionStatus = $transactionStatusRequest->start();  
-            return $transactionStatus;
+            return $transactionStatusRequest->start();
         } catch (\Exception $e) {
             $this->helper->logCritical('getTransactionStatus error: ' . $e->getMessage(), ['transactionId' => $transactionId]);
             return;
@@ -65,8 +64,8 @@ class PayTransaction
      * @return \PayNL\Sdk\Model\OrderStatusResponse
      * @throws \Exception
      */
-    public function getOrderStatus($transactionId)
-    {        
+    public function getOrderStatus(string $transactionId)
+    {
         try {
             $orderStatusRequest = new OrderStatusRequest($transactionId);
             $orderStatusRequest->setConfig($this->payConfig->getConfig(true));
@@ -103,11 +102,11 @@ class PayTransaction
         if ($payOrder->isRefunded()) {
             $iOrderState = $this->STATUS_REFUNDED;
             $status = 'Refunded';
-        } 
+        }
 
         $order_info = $this->openCart->model_checkout_order->getOrder($orderId);
-        $current_order_status = $order_info['order_status_id'];   
-        
+        $current_order_status = $order_info['order_status_id'];
+
         if (!$iOrderState || ($current_order_status == $this->STATUS_PROCESSING && $iOrderState == $this->STATUS_CANCELED && $payOrder->isPaid() && !$payOrder->isAuthorized())) {
             return 'Ignoring';
         }
@@ -163,13 +162,13 @@ class PayTransaction
      * @return void
      */
     public function getPaymentMethod($payment_profile_id)
-    {              
+    {
         $this->openCart->load->model('extension/paynl/payment/paynl');
         $payment_methods = $this->openCart->{'model_extension_paynl_payment_paynl'}->getMethods([], true);
         if (!empty($payment_methods['option'])) {
             foreach ($payment_methods['option'] as $payment_method) {
                 if ($payment_method['paymentOptionId'] == $payment_profile_id) {
-                    $method = json_encode($payment_method);                  
+                    $method = json_encode($payment_method);
                     return $method;
                 }
             }
@@ -177,34 +176,34 @@ class PayTransaction
     }
 
     /**
-     * @param array $order_info
+     * @param array $orderInfo
      * @param array $options
      * @return string
      * @throws \Exception
      */
-    public function startTransaction(array $order_info, array $options)
+    public function startTransaction(array $orderInfo, array $options)
     {
         $request = new OrderCreateRequest();
         $request->setConfig($this->payConfig->getConfig(true));
         $request->setServiceId($this->payConfig->getServiceId());
-        $request->setDescription('Order ' . $order_info['order_id']);
-        $request->setReference($order_info['order_id']);
+        $request->setDescription('Order ' . $orderInfo['order_id']);
+        $request->setReference($orderInfo['order_id']);
 
         $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish') . '&session_id=' . $this->openCart->session->getId());
         $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
 
-        $request->setAmount($order_info['total']);
-        $request->setCurrency($order_info['currency_code']);
+        $request->setAmount($orderInfo['total']);
+        $request->setCurrency($orderInfo['currency_code']);
         $request->setPaymentMethodId($this->openCart->session->data['payment_method']['paymentOptionId']);
         $request->setIssuerId($options['issuer']);
         $request->setTestmode($this->payConfig->isTestMode());
 
         $customer = new \PayNL\Sdk\Model\Customer();
-        $customer->setFirstName($order_info['firstname'] ?? '');
-        $customer->setLastName($order_info['lastname'] ?? '');
+        $customer->setFirstName($orderInfo['firstname'] ?? '');
+        $customer->setLastName($orderInfo['lastname'] ?? '');
         $customer->setIpAddress($_SERVER["REMOTE_ADDR"]);
-        $customer->setPhone($order_info['telephone'] ?? '');
-        $customer->setEmail($order_info['email'] ?? '');
+        $customer->setPhone($orderInfo['telephone'] ?? '');
+        $customer->setEmail($orderInfo['email'] ?? '');
 
         $language = $this->payConfig->getScreenLanguage();
         if ($language == 'auto' || $language == null) {
@@ -260,9 +259,35 @@ class PayTransaction
             $order->setInvoiceAddress($invAddress);
         }
 
-        $payProducts = new \PayNL\Sdk\Model\Products();
-        $products = $this->openCart->cart->getProducts();
-        $totalPrice = 0;
+        $order->setProducts($this->getPayProducts($orderInfo, $options));
+
+        $request->setStats((new \PayNL\Sdk\Model\Stats())
+            ->setObject($this->payConfig->getObject())
+            ->setExtra1($orderInfo['order_id']));
+
+        $request->setOrder($order);
+
+		try {
+			$payOrder = $request->start();
+			paydbg($payOrder->getOrderId());
+		} catch (PayException|\Exception $e) {
+			throw new \Exception($e->getMessage(), $e->getCode());
+		}
+
+		$this->addTransaction($orderInfo['order_id'], $payOrder->getOrderId(), $orderInfo['total']);
+		return $payOrder->getPaymentUrl();
+	}
+
+	/**
+	 * @param $order_info
+	 * @param $options
+	 * @return \PayNL\Sdk\Model\Products
+	 */
+	private function getPayProducts($order_info, $options)
+	{
+		$payProducts = new \PayNL\Sdk\Model\Products();
+		$products = $this->openCart->cart->getProducts();
+		$totalPrice = 0;
 
         foreach ($products as $key => $product) {
             $tax = $this->openCart->tax->getTax($product['price'], $product['tax_class_id']);
@@ -270,54 +295,35 @@ class PayTransaction
             $payProducts->addProduct(new Product($product['product_id'], $product['name'], $product['price'], $order_info['currency_code'], Product::TYPE_ARTICLE, $product['quantity'], paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
         }
 
-        if (!empty($order_info['shipping_method'])) {
-            $shipping = $order_info['shipping_method'];
-            $tax = $this->openCart->tax->getTax($shipping['cost'], $shipping['tax_class_id']);
-            $payProducts->addProduct(new Product('Shipping', $shipping['name'], $shipping['cost'], $order_info['currency_code'], Product::TYPE_SHIPPING, 1, paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
-        }
+		if (!empty($order_info['shipping_method'])) {
+			$shipping = $order_info['shipping_method'];
+			$tax = $this->openCart->tax->getTax($shipping['cost'], $shipping['tax_class_id']);
+			$payProducts->addProduct(new Product('Shipping', $shipping['name'], $shipping['cost'], $order_info['currency_code'], Product::TYPE_SHIPPING, 1, paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
+		}
 
-        if ($options['coupon']) {
-            $discount = 0;
-            $this->openCart->load->model('marketing/coupon');
-            $coupon_info = $this->openCart->model_marketing_coupon->getCoupon($options['coupon']);
-            if ($coupon_info['type'] == 'P') {
-                $discount += ($totalPrice / 100) * $coupon_info['discount'];
-            } elseif ($coupon_info['type'] == 'F') {
-                $discount += $coupon_info['discount'];
-            }
-            if (!empty($order_info['shipping_method']) && $coupon_info['shipping'] == 1) {
-                $discount += $order_info['shipping_method']['cost'];
-            }
-            $payProducts->addProduct(new Product($options['coupon'], $coupon_info['name'], -$discount, $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
-        }
+		if ($options['coupon']) {
+			$discount = 0;
+			$this->openCart->load->model('marketing/coupon');
+			$coupon_info = $this->openCart->model_marketing_coupon->getCoupon($options['coupon']);
+			if ($coupon_info['type'] == 'P') {
+				$discount += ($totalPrice / 100) * $coupon_info['discount'];
+			} elseif ($coupon_info['type'] == 'F') {
+				$discount += $coupon_info['discount'];
+			}
+			if (!empty($order_info['shipping_method']) && $coupon_info['shipping'] == 1) {
+				$discount += $order_info['shipping_method']['cost'];
+			}
+			$payProducts->addProduct(new Product($options['coupon'], $coupon_info['name'], -$discount, $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
+		}
 
-        if ($options['voucher']) {
-            $this->openCart->load->model('checkout/voucher');
-            $voucher_info = $this->openCart->model_checkout_voucher->getVoucher($options['voucher']);
-            $payProducts->addProduct(new Product('voucher', $voucher_info['code'], -$voucher_info['amount'], $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
-        }
+		if ($options['voucher']) {
+			$this->openCart->load->model('checkout/voucher');
+			$voucher_info = $this->openCart->model_checkout_voucher->getVoucher($options['voucher']);
+			$payProducts->addProduct(new Product('voucher', $voucher_info['code'], -$voucher_info['amount'], $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
+		}
 
-        $order->setProducts($payProducts);
-
-        $request->setStats((new \PayNL\Sdk\Model\Stats())
-            ->setObject($this->payConfig->getObject())
-            ->setExtra1($order_info['order_id']));
-
-        $request->setOrder($order);
-
-        
-
-        try {
-            $transaction = $request->start();
-        } catch (PayException $e) {
-            throw new \Exception($e->getMessage(), $e->getCode());
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage(), $e->getCode());
-        }
-        
-        $this->addTransaction($order_info['order_id'], $transaction->getOrderId(), $order_info['total']);
-        return $transaction->getPaymentUrl();
-    }
+		return $payProducts;
+	}
 
     /**
      * @param string $order_id
@@ -405,7 +411,7 @@ class PayTransaction
         $request->setConfig($this->payConfig->getConfig());
         if($maxAmount != $amount) {
             $request->setAmount($amount);
-        }        
+        }
         $request->start();
     }
 
@@ -433,7 +439,7 @@ class PayTransaction
             $dbTransaction = $this->openCart->db->query($query);
             if ($dbTransaction && !empty($dbTransaction->num_rows) && $dbTransaction->num_rows) {
                 $result = $dbTransaction->rows ?? $dbTransaction->row;
-            }        
+            }
             if (empty($result)) {
                 $query = "INSERT INTO `" . DB_PREFIX . "pay_processing`(`payOrderId`) VALUES ('" . $payOrderId . "') ON DUPLICATE KEY UPDATE created_at='" . date('Y-m-d H:i:s') . "';";
                 $this->openCart->db->query($query);
@@ -449,7 +455,7 @@ class PayTransaction
      * @return void
      */
     public function removeProcessing($payOrderId)
-    {     
+    {
         $query = "DELETE FROM `" . DB_PREFIX . "pay_processing` WHERE `payOrderId` = '" . $payOrderId . "';";
         $this->openCart->db->query($query);
     }
