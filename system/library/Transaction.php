@@ -266,8 +266,8 @@ class PayTransaction
 
         foreach ($products as $key => $product) {
             $tax = $this->openCart->tax->getTax($product['price'], $product['tax_class_id']);
-            $totalPrice += $product['total'];
-            $payProducts->addProduct(new Product($product['product_id'], $product['name'], $product['total'], $order_info['currency_code'], Product::TYPE_ARTICLE, $product['quantity'], paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
+            $totalPrice += $product['price'];
+            $payProducts->addProduct(new Product($product['product_id'], $product['name'], $product['price'], $order_info['currency_code'], Product::TYPE_ARTICLE, $product['quantity'], paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
         }
 
         if (!empty($order_info['shipping_method'])) {
