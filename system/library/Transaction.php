@@ -192,8 +192,8 @@ class PayTransaction
         $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish') . '&session_id=' . $this->openCart->session->getId());
         $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
 
-        $request->setAmount($orderInfo['total']);
-        $request->setCurrency($orderInfo['currency_code']);
+        $request->setAmount($this->openCart->currency->convert($orderInfo['total'], $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']));
+        $request->setCurrency($this->openCart->session->data['currency']);
         $request->setPaymentMethodId($this->openCart->session->data['payment_method']['paymentOptionId']);
         $request->setIssuerId($options['issuer']);
         $request->setTestmode($this->payConfig->isTestMode());
@@ -290,36 +290,65 @@ class PayTransaction
 		$totalPrice = 0;
 
         foreach ($products as $key => $product) {
-            $tax = $this->openCart->tax->getTax($product['price'], $product['tax_class_id']);
-            $totalPrice += $product['price'];
-            $payProducts->addProduct(new Product($product['product_id'], $product['name'], $product['price'], $order_info['currency_code'], Product::TYPE_ARTICLE, $product['quantity'], paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
+            $productPrice = $product['price'];
+            $priceWithoutTax = $this->openCart->currency->convert($productPrice, $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']); 
+            
+            $taxes = $this->openCart->tax->getRates($product['price'], $product['tax_class_id']);
+            foreach ($taxes as $taxInfo) {
+                $productPrice += $taxInfo['amount'];
+            }
+            $priceWithTax = $this->openCart->currency->convert($productPrice, $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']);   
+            $tax = $priceWithTax - $priceWithoutTax;       
+            $taxPercentage = ($tax / $priceWithoutTax) * 100;            
+          
+            $totalPrice += $priceWithTax;
+            $payProducts->addProduct(new Product($product['product_id'], $product['name'], $priceWithTax, $this->openCart->session->data['currency'], Product::TYPE_ARTICLE, $product['quantity'], 'N', $taxPercentage)); // phpcs:ignore
+
         }
 
 		if (!empty($order_info['shipping_method'])) {
 			$shipping = $order_info['shipping_method'];
-			$tax = $this->openCart->tax->getTax($shipping['cost'], $shipping['tax_class_id']);
-			$payProducts->addProduct(new Product('Shipping', $shipping['name'], $shipping['cost'], $order_info['currency_code'], Product::TYPE_SHIPPING, 1, paynl_determine_vat_class_by_percentage($tax))); // phpcs:ignore
+
+            $shippingPrice = $shipping['cost'];
+            $priceWithoutTax = $this->openCart->currency->convert($shippingPrice, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']); 
+            
+            $taxes = $this->openCart->tax->getRates($shipping['cost'], $shipping['tax_class_id']);
+            foreach ($taxes as $taxInfo) {
+                $shippingPrice += $taxInfo['amount'];
+            }
+            $priceWithTax = $this->openCart->currency->convert($shippingPrice, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']);   
+            $tax = $priceWithTax - $priceWithoutTax;       
+            $taxPercentage = ($tax / $priceWithoutTax) * 100;    
+
+            $totalPrice += $priceWithTax;
+            $payProducts->addProduct(new Product('Shipping', $shipping['name'], $priceWithTax, $this->openCart->session->data['currency'], Product::TYPE_SHIPPING, 1, 'N', $taxPercentage)); // phpcs:ignore
 		}
 
 		if ($options['coupon']) {
 			$discount = 0;
-			$this->openCart->load->model('marketing/coupon');
-			$coupon_info = $this->openCart->model_marketing_coupon->getCoupon($options['coupon']);
-			if ($coupon_info['type'] == 'P') {
-				$discount += ($totalPrice / 100) * $coupon_info['discount'];
-			} elseif ($coupon_info['type'] == 'F') {
-				$discount += $coupon_info['discount'];
-			}
-			if (!empty($order_info['shipping_method']) && $coupon_info['shipping'] == 1) {
-				$discount += $order_info['shipping_method']['cost'];
-			}
-			$payProducts->addProduct(new Product($options['coupon'], $coupon_info['name'], -$discount, $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
+            $this->openCart->load->model('marketing/coupon');
+            $coupon_info = $this->openCart->model_marketing_coupon->getCoupon($options['coupon']);
+            if ($coupon_info['type'] == 'P') {
+                $discount += ($totalPrice / 100) * $coupon_info['discount'];
+            } elseif ($coupon_info['type'] == 'F') {
+                $discount += $coupon_info['discount'];
+            }
+            if (!empty($order_info['shipping_method']) && $coupon_info['shipping'] == 1) {
+                $discount += $order_info['shipping_method']['cost'];
+            }
+
+            $discount = $this->openCart->currency->convert($discount, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']); 
+
+            $payProducts->addProduct(new Product($options['coupon'], $coupon_info['name'], -$discount, $this->openCart->session->data['currency'], Product::TYPE_DISCOUNT, 1, 'N'));
 		}
 
 		if ($options['voucher']) {
 			$this->openCart->load->model('checkout/voucher');
-			$voucher_info = $this->openCart->model_checkout_voucher->getVoucher($options['voucher']);
-			$payProducts->addProduct(new Product('voucher', $voucher_info['code'], -$voucher_info['amount'], $order_info['currency_code'], Product::TYPE_DISCOUNT, 1, 'N'));
+            $voucher_info = $this->openCart->model_checkout_voucher->getVoucher($options['voucher']);
+
+            $voucher = $this->openCart->currency->convert($voucher_info['amount'], $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']); 
+
+            $payProducts->addProduct(new Product('voucher', $voucher_info['code'], -$voucher, $this->openCart->session->data['currency'], Product::TYPE_DISCOUNT, 1, 'N'));
 		}
 
 		return $payProducts;
