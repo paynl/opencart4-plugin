@@ -132,9 +132,9 @@ class Paynl extends \Opencart\System\Engine\Model
             }
         }
 
-        $shippingMethod = $this->session->data['shipping_method'];
+        $shippingMethod = $this->session->data['shipping_method'] ?? null;
         $allowedShippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_allowed_shipping');
-        if (!empty($allowedShippingSetting)) {
+        if (!empty($allowedShippingSetting) && !empty($shippingMethod)) {
             $allowedShippingCodes = [];
             foreach ($allowedShippingSetting as $shippingSetting) {
                 $allowedShippingCodes[] = $this->getShippingCodeByCode($shippingSetting);
