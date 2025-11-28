@@ -199,7 +199,7 @@ class Paynl extends \Opencart\System\Engine\Controller
 					$maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
 					$countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
 					$sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
-					$image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
+					$image = 'https://static.pay.nl/' . $method->getImage();
 
 					$gateways[$method->getId()] = [];
 
