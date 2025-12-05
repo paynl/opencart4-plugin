@@ -1,0 +1,30 @@
+name: Build paynl.ocmod.zip
+
+on:
+  release:
+    types: [published]   # Zodra je de release publiceert
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # .github map verwijderen
+      - name: Remove .github directory
+        run: rm -rf .github
+
+      # ZIP maken van hele repo
+      - name: Create ZIP
+        run: |
+          zip -r paynl.ocmod.zip ./*
+
+      # Upload ZIP als asset naar release
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: paynl.ocmod.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
