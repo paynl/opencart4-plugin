@@ -23,7 +23,9 @@ This plugin provides a wide scale of different payment methods for your OpenCart
 #### Installing
 
 1. Download the latest .zip file (paynl.ocmod.zip) and upload it into *Extensions* > *Installer* > *Upload*
-2. Install the *Pay. Payments for Opencart 4* Extension
+2. Now the extension *Pay. Payments for Opencart 4* Extension should be visible
+3. Press the green install button on the right side
+4. Follow the *Setup* section below to continue.
 
 ##### Setup
 
