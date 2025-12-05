@@ -117,13 +117,6 @@ class Paynl extends \Opencart\System\Engine\Model
             return false;
         }
 
-        $total = $this->cart->getSubTotal();
-        $minAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_minamount');
-        $maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_maxamount');
-        if ($total < $minAmountSetting || $total > $maxAmountSetting) {
-            return false;
-        }
-
         $countryId = $this->getCountryId();
         $countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_countries');
         if (!empty($countriesSetting)) {
@@ -132,9 +125,9 @@ class Paynl extends \Opencart\System\Engine\Model
             }
         }
 
-        $shippingMethod = $this->session->data['shipping_method'];
+        $shippingMethod = $this->session->data['shipping_method'] ?? null;
         $allowedShippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_allowed_shipping');
-        if (!empty($allowedShippingSetting)) {
+        if (!empty($allowedShippingSetting) && !empty($shippingMethod)) {
             $allowedShippingCodes = [];
             foreach ($allowedShippingSetting as $shippingSetting) {
                 $allowedShippingCodes[] = $this->getShippingCodeByCode($shippingSetting);
@@ -142,6 +135,21 @@ class Paynl extends \Opencart\System\Engine\Model
             if (!in_array($shippingMethod['code'], $allowedShippingCodes)) {
                 return false;
             }
+        }
+
+        $total = $this->cart->getTotal();
+        if (!empty($shippingMethod)) {
+            $total += (float) $shippingMethod['cost'];
+            $taxes = $this->tax->getRates($shippingMethod['cost'], $shippingMethod['tax_class_id']);
+            foreach ($taxes as $taxInfo) {
+                $total += $taxInfo['amount'];
+            }
+        }
+        $total = $this->currency->convert($total, $this->config->get('config_currency'), $this->session->data['currency']);
+        $minAmountSetting = (float) $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_minamount');
+        $maxAmountSetting = (float) $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->id . '_maxamount');
+        if ($total < $minAmountSetting || $total > $maxAmountSetting) {
+            return false;
         }
 
         $company = $this->getCompany();

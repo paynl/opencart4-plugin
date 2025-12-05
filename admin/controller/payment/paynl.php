@@ -199,7 +199,7 @@ class Paynl extends \Opencart\System\Engine\Controller
 					$maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
 					$countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
 					$sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
-					$image = 'https://raw.githubusercontent.com/paynl/payment-images/refs/heads/master' . $method->getImage();
+					$image = 'https://static.pay.nl/' . $method->getImage();
 
 					$gateways[$method->getId()] = [];
 
@@ -208,8 +208,8 @@ class Paynl extends \Opencart\System\Engine\Controller
 					$gateways[$method->getId()]['name'] = html_entity_decode((!empty($nameSetting)) ? $nameSetting : $method->getName());
 					$gateways[$method->getId()]['description'] = html_entity_decode((!empty($descriptionSetting)) ? $descriptionSetting : $method->getDescription());
 					$gateways[$method->getId()]['descriptionShort'] = mb_strimwidth($gateways[$method->getId()]['description'], 0, 120, '...');
-					$gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : $method->getMinAmount();
-					$gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : $method->getMaxAmount();
+					$gateways[$method->getId()]['minamount'] = (!empty($minAmountSetting)) ? $minAmountSetting : (float) $method->getMinAmount() / 100;
+					$gateways[$method->getId()]['maxamount'] = (!empty($maxAmountSetting)) ? $maxAmountSetting : (float) $method->getMaxAmount() / 100;
 					$gateways[$method->getId()]['countries'] = $countriesSetting;
 					$shippingSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_allowed_shipping');
 					$customerTypeSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_customer_type');
