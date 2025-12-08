@@ -183,6 +183,12 @@ class Paynl extends \Opencart\System\Engine\Controller
 		}
 	}
 
+    /**
+     * @param $apitoken
+     * @param $serviceId
+     * @param $tokencode
+     * @return array|void
+     */
     public function getGateways($apitoken, $serviceId, $tokencode)
     {
 		$gateways = [];
@@ -374,10 +380,11 @@ class Paynl extends \Opencart\System\Engine\Controller
     }
 
     /**
-     * @param string $route
-     * @param array $data
-     * @param string $template_code
+     * @param $route
+     * @param $data
+     * @param $template_code
      * @return null
+     * @throws \Exception
      */
     public function order_info_before(&$route, &$data, &$template_code)
     {

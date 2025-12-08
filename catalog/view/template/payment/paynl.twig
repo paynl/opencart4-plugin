@@ -1,11 +1,11 @@
 <fieldset>
-    <div style="font-weight: bold; font-size: 16px;">You have selected: {{ paymentMethodName }}</div>    
+    <div style="font-weight: bold; font-size: 16px;">You have selected: {{ paymentMethodName }}</div>
     <form id="form-paynl">
         <div class="row">
         <input type="hidden" name="order_id" value="{{ order_id }}" />
         <input type="hidden" name="coupon" value="{{ coupon }}" />
         <input type="hidden" name="voucher" value="{{ voucher }}" />
-        {% if (showIssuers == '1' or showIssuers == '2') %} 
+        {% if (showIssuers == '1' or showIssuers == '2') %}
             <p><b>{{ select_issuer_text }}</b></p>
             <div class="mb-3 {% if showIssuers == '2' %}required{% endif %}">
                 <select name="payIssuer" class="form-select {% if showIssuers == '2' %}required{% endif %}">
@@ -17,29 +17,30 @@
                 <div id="error-payDOB" class="invalid-feedback">Please choose your bank.</div>
             </div>
         {% endif %}
-        {% if (showDOB == '1' or showDOB == '2') %} 
+        {% if (showDOB == '1' or showDOB == '2') %}
             <div class="mb-3 {% if showDOB == '2' %}required{% endif %}">
-                <label for="payDOB" class="col-form-label">Date of Birth</label> 
+                <label for="payDOB" class="col-form-label">Date of Birth</label>
                 <input type="date" name="payDOB" value="" id="payDOB" class="form-control {% if showDOB == '2' %}required{% endif %}" placeholder="Enter your Date of Birth"/>
                 <div id="error-payDOB" class="invalid-feedback">Please enter a valid Date of Birth</div>
             </div>
         {% endif %}
-        {% if (showCOC == '1' or showCOC == '2') %} 
+        {% if (showCOC == '1' or showCOC == '2') %}
             <div class="mb-3 {% if showCOC == '2' %}required{% endif %}">
-                <label for="payCOC" class="col-form-label">COC number</label> 
+                <label for="payCOC" class="col-form-label">COC number</label>
                 <input type="text" name="payCOC" value="" id="payCOC" class="form-control {% if showCOC == '2' %}required{% endif %}" placeholder="Enter your COC number"/>
                 <div id="error-payCOC" class="invalid-feedback">Please enter a valid COC number</div>
             </div>
         {% endif %}
-        {% if (showVAT == '1' or showVAT == '2') %} 
+        {% if (showVAT == '1' or showVAT == '2') %}
             <div class="mb-3 {% if showVAT == '2' %}required{% endif %}">
-                <label for="payCOC" class="col-form-label">VAT number</label> 
+                <label for="payCOC" class="col-form-label">VAT number</label>
                 <input type="text" name="payVAT" value="" id="payVAT" class="form-control {% if showVAT == '2' %}required{% endif %}" placeholder="Enter your VAT number"/>
                 <div id="error-payCOC" class="invalid-feedback">Please enter a valid VAT number</div>
             </div>
         {% endif %}
         <div class="d-inline-block pt-2 pd-2 w-100 text-end">
             <button type="submit" id="button-confirm" class="btn btn-primary">{{ button_confirm }}</button>
+        </div>
         </div>
     </form>
 </fieldset>
@@ -49,8 +50,8 @@
         var element = this;
         var errors = false;
 
-        $('.invalid-feedback').hide();        
-        $(this).find('input, select').each(function(){            
+        $('.invalid-feedback').hide();
+        $(this).find('input, select').each(function(){
             if($(this).hasClass('required') && (!$(this).val() || $(this).val() == 0)){
                 $(this).parent().find('.invalid-feedback').show();
                 errors = true;
@@ -59,7 +60,7 @@
         if(errors){
             return false;
         }
-        
+
         $.ajax({
             url: 'index.php?route=extension/paynl/payment/paynl.confirm&language={{ language }}',
             type: 'post',
