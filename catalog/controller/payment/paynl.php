@@ -16,9 +16,10 @@ class Paynl extends \Opencart\System\Engine\Controller
     private $payConfig;
     private $helper;
     private $payTransaction;
-/**
- * @param \Opencart\System\Engine\Registry $registry
- */
+
+    /**
+     * @param \Opencart\System\Engine\Registry $registry
+     */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
         $this->payConfig = new PayConfig($this);

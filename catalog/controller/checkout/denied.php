@@ -13,9 +13,10 @@ class Denied extends \Opencart\System\Engine\Controller
     private $route;
     private $helper;
     private $payTransaction;
-/**
- * @param \Opencart\System\Engine\Registry $registry
- */
+
+    /**
+     * @param \Opencart\System\Engine\Registry $registry
+     */
     public function __construct(\Opencart\System\Engine\Registry $registry)
     {
         $this->helper = new PayHelper($this);
