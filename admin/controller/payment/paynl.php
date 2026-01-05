@@ -205,9 +205,11 @@ class Paynl extends \Opencart\System\Engine\Controller
 					$maxAmountSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_maxamount');
 					$countriesSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_countries');
 					$sortSetting = $this->config->get('payment_' . $this->code . '_paymentmethod_' . $method->getId() . '_sort');
-					$image = 'https://static.pay.nl/' . $method->getImage();
+                    
+                    $this->saveLogo($method->getImage());
+					$image = $this->getLogo($method->getImage());
 
-					$gateways[$method->getId()] = [];
+                    $gateways[$method->getId()] = [];
 
 					$gateways[$method->getId()]['id'] = $method->getId();
 					$gateways[$method->getId()]['active'] = (!empty($activeSetting)) ? $activeSetting : '0';
@@ -642,5 +644,61 @@ class Paynl extends \Opencart\System\Engine\Controller
             $method_data[$result['code']] = $result;
         }
         return $method_data;
+    }
+
+    /**
+     * Get logo
+     *
+     * @param $imagePath   
+     */
+    public function getLogo($imagePath)
+    {
+        $path = '/extension/paynl/admin/view/image/cache' . $imagePath;
+        if (file_exists(DIR_OPENCART . $path)) {
+            return $path;
+        } else {
+            return 'https://static.pay.nl' . $imagePath;
+        }
+    }
+
+    /**
+     * Save logo
+     *  
+     * @param $imagePath   
+     */
+    public function saveLogo($imagePath)
+    {
+        $path = DIR_OPENCART . 'extension/paynl/admin/view/image/cache';
+        if (file_exists($path . $imagePath) && (time() - filemtime($path . $imagePath) < 86400)) {
+            return;
+        }
+        $imageUrl = 'https://static.pay.nl/' . $imagePath;
+        $this->downloadImage($imageUrl, $path, $imagePath);
+    }
+
+    /**
+     * Download image from url
+     *
+     * @param string $url
+     * @param string $path
+     * @param string $imagePath
+     * @return bool
+     */
+    function downloadImage($url, $path, $image)
+    {
+        $data = file_get_contents($url);
+        if ($data !== false) {
+            try {
+                $imagePath = explode('/', $image)[1];
+                if (!is_dir($path . '/' . $imagePath . '/')) {
+                    mkdir($path . '/' . $imagePath . '/', 0755, true);
+                }
+                $result = file_put_contents($path . $image, $data);
+            } catch (\Throwable $th) {
+                return false;
+            }
+            return $result;
+        }
+        return false;
     }
 }
