@@ -176,7 +176,7 @@
                         </span>
                       </span>
                       <span class="col-sm-1 clickable payImage">
-                        <img src="{{ paymentmethod.image|e }}" class="payPaymentMethodImage clickable"/>
+                        <img src="{{ paymentmethod.image|e }}" class="payPaymentMethodImage clickable" onerror="this.onerror=null; this.src='/extension/paynl/admin/view/image/OTHER.svg'"/>
                       </span>
                       <span class="col-sm-9 clickable openPaymentDetails">
                           <h4 class="list-group-item-heading payPaymentTitle clickable">{{ paymentmethod.name|e }}</h4>
