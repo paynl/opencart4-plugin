@@ -684,21 +684,21 @@ class Paynl extends \Opencart\System\Engine\Controller
      * @param string $imagePath
      * @return bool
      */
-    function downloadImage($url, $path, $image)
+    public function downloadImage($url, $path, $image)
     {
-        $data = file_get_contents($url);
-        if ($data !== false) {
-            try {
-                $imagePath = explode('/', $image)[1];
-                if (!is_dir($path . '/' . $imagePath . '/')) {
-                    mkdir($path . '/' . $imagePath . '/', 0755, true);
-                }
-                $result = file_put_contents($path . $image, $data);
-            } catch (\Throwable $th) {
+        try {
+            $data = @file_get_contents($url);
+            if ($data === false) {
                 return false;
             }
-            return $result;
+            $imagePath = explode('/', $image)[1];
+            if (!is_dir($path . '/' . $imagePath . '/')) {
+                mkdir($path . '/' . $imagePath . '/', 0755, true);
+            }
+            $result = file_put_contents($path . $image, $data);
+        } catch (\Throwable $th) {
+            return false;
         }
-        return false;
+        return $result;
     }
 }
