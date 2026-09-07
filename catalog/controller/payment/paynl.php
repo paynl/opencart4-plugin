@@ -38,7 +38,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $this->load->language($this->route);
         $data['logged'] = $this->customer->isLogged();
         $data['language'] = $this->config->get('config_language');
-        $data['order_id'] = (int) $this->session->data['order_id'];
+        $data['order_id'] = !empty($this->session->data['order_id']) ? (int) $this->session->data['order_id'] : null;
         $data['coupon'] = $this->session->data['coupon'] ?? '';
         $data['voucher'] = $this->session->data['voucher'] ?? '';
         $data['description'] = $this->session->data['payment_method']['description'] ?? '';
@@ -64,10 +64,15 @@ class Paynl extends \Opencart\System\Engine\Controller
         if (!isset($this->session->data['payment_method'])) {
             $json['error']['warning'] = $this->language->get('session_error_payment_method');
         }
-        $this->load->model('checkout/order');
-        $order = $this->model_checkout_order->getOrder($this->request->post['order_id']);
+        if (empty($this->request->post['order_id'])) {
+            $json['error']['warning'] = $this->language->get('session_error_order');
+        }
+
         if (!$json) {
             try {
+                $this->load->model('checkout/order');
+                $order = $this->model_checkout_order->getOrder($this->request->post['order_id']);
+
                 $options = [
                     'coupon' => $this->request->post['coupon'] ?? '',
                     'voucher' => $this->request->post['voucher'] ?? '',
@@ -83,7 +88,7 @@ class Paynl extends \Opencart\System\Engine\Controller
                 $json['error']['warning'] = $this->language->get('error_start_transaction');
             }
         } else {
-            $this->helper->logNotice('Transaction: cannot start transaction', ['orderId' => $this->request->post['order_id'], ' Json' => json_encode($json)]);
+            $this->helper->logNotice('Transaction: cannot start transaction', ['orderId' => $this->request->post['order_id'] ?? null, ' Json' => json_encode($json)]);
         }
         $this->response->addHeader('Content-Type: application/json');
         $this->response->setOutput(json_encode($json));
