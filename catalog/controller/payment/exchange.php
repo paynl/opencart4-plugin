@@ -36,10 +36,11 @@ class Exchange extends \Opencart\System\Engine\Controller
      * @return void
      */
     public function exchange()
-    {
-        $exchange = new PayExchange();
-        $transactionId = $exchange->getPayOrderId();
+    {        
         try {
+            $exchange = new PayExchange();
+            $transactionId = $exchange->getPayOrderId();
+            
             # Process the exchange request
             $payOrder = $exchange->process($this->payConfig->getConfig(true));
             if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->isRefunded() || $payOrder->isCancelled() || $payOrder->isVoided()) {

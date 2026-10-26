@@ -35,7 +35,11 @@ class Finish extends \Opencart\System\Engine\Controller
     public function finish()
     {
         $this->load->language($this->route);
-        $orderStatusId = (new PayStatus())->get($this->request->get['statusCode'] ?? '');
+
+        $orderStatusId = null;
+        if (!empty($this->request->get['statusCode'])) {
+            $orderStatusId = (new PayStatus())->get($this->request->get['statusCode']);
+        }
 
         if ($orderStatusId == PayStatus::PENDING || $orderStatusId == PayStatus::PAID || $orderStatusId == PayStatus::AUTHORIZE || $orderStatusId == PayStatus::VERIFY) {
             $this->response->redirect($this->url->link('checkout/success'));
