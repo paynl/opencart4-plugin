@@ -34,22 +34,7 @@ class Finish extends \Opencart\System\Engine\Controller
      */
     public function finish()
     {
-        $config = new \Opencart\System\Engine\Config();
-        $option = [
-            'expires' => 0,
-            'path' => $config->get('session_path'),
-            'domain' => $config->get('session_domain'),
-            'secure' => !empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] != 'off',
-            'httponly' => false,
-            'SameSite' => $config->get('session_samesite')
-        ];
-
-        if (!empty($this->request->get['session_id'])) {
-            setcookie('OCSESSID', $this->request->get['session_id'], $option);
-        }
-
         $this->load->language($this->route);
-        //$orderStatusId = (new PayStatus())->get($this->request->get['statusCode'] ?? '');
 
         $orderStatusId = null;
         if (!empty($this->request->get['statusCode'])) {
