@@ -71,6 +71,7 @@ $_['text_dropdown'] = 'Auswahlliste';
 $_['text_optional'] = 'Optional';
 $_['text_required'] = 'Erforderlich';
 // Error
+$_['error_service_config'] = 'Die Konfiguration konnte nicht von Pay. abgerufen werden. Prüfen Sie den Token-Code, das API-Token, die Verkaufsstelle und die zugehörigen Zugriffsrechte bei Pay. Die Einstellungen bleiben verfügbar, damit Sie diese Angaben ändern können.';
 $_['error_permission'] = 'Warnung! Sie haben nicht die Berechtigung, das Zahlungsmodul Pay. zu ändern!';
 $_['error_tokencode'] = 'Token code ist erforderlich';
 $_['error_apitoken'] = 'API token ist erforderlich';

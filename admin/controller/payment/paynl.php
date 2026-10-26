@@ -92,13 +92,22 @@ class Paynl extends \Opencart\System\Engine\Controller
 		$this->load->model('localisation/language');
 		$data['languages'] = $this->model_localisation_language->getLanguages();
 
-		$data['pay_tgu_list'] = (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) ? $this->payConfig->getTguList() : [["domain" => "pay.nl", "status" => "ACTIVE"]];
 		$data['pay_failover_gateway'] = $this->config->get('payment_' . $this->code . '_failover_gateway');
 		$data['pay_custom_gateway'] = $this->config->get('payment_' . $this->code . '_custom_gateway');
+		$core = $data['pay_failover_gateway'];
+		$data['pay_tgu_list'] = [['domain' => $core && $core != 'custom' ? $core : 'pay.nl', 'status' => 'ACTIVE']];
+		$data['pay_config_warning'] = '';
+		$data['pay_paymentmethods'] = [];
 
-		$gateways = $this->getGateways($data['apitoken'], $data['serviceid'], $data['tokencode']);
-
-		$data['pay_paymentmethods'] = $gateways;
+		if (!empty($data['apitoken']) && !empty($data['serviceid']) && !empty($data['tokencode'])) {
+			try {
+				$data['pay_tgu_list'] = $this->payConfig->getTguList();
+				$data['pay_paymentmethods'] = $this->getGateways($data['apitoken'], $data['serviceid'], $data['tokencode']);
+			} catch (\Exception $e) {
+				$data['pay_config_warning'] = $this->language->get('error_service_config');
+				$this->helper->logCritical('Admin service configuration: failed to load', ['error' => $e->getMessage()]);
+			}
+		}
 
 		$this->load->model('localisation/geo_zone');
 		$data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();

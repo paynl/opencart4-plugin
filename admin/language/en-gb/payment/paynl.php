@@ -97,6 +97,7 @@ $_['text_dropdown'] = 'Dropdown';
 $_['text_optional'] = 'Optional';
 $_['text_required'] = 'Required';
 // Error
+$_['error_service_config'] = 'The configuration could not be retrieved from Pay. Check the token code, API token, sales location and their access permissions at Pay. The settings remain available so you can update these details.';
 $_['error_permission'] = 'Warning: You do not have permission to modify Pay. payment module!';
 $_['error_tokencode'] = 'Token code is required';
 $_['error_apitoken'] = 'API token is required.';
