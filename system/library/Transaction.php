@@ -20,6 +20,7 @@ class PayTransaction
 {
     public $openCart;
     public $payConfig;
+    private $helper;
     public $code;
     public $route;
 
@@ -38,6 +39,7 @@ class PayTransaction
     {
         $this->openCart = $openCart;
         $this->payConfig = new PayConfig($openCart);
+        $this->helper = new PayHelper($openCart);
         $this->code = $this->payConfig->code;
         $this->route = $this->payConfig->route;
     }

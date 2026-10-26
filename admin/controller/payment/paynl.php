@@ -399,6 +399,9 @@ class Paynl extends \Opencart\System\Engine\Controller
 
             if (empty($payOrder) || ($payOrder instanceof \PayNL\Sdk\Model\Pay\PayOrder && ($payOrder->isPaid() || $payOrder->isAuthorized()))) {
                 $payGmsOrder = $this->payTransaction->getTransactionStatus($dbTransaction['transaction_id']);
+                if (empty($payGmsOrder)) {
+                    return null;
+                }
                 if ($payGmsOrder->isRefunded() || empty($payOrder)) {
                     $payOrder = $payGmsOrder;
                 }
