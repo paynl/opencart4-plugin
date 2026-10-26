@@ -65,14 +65,14 @@ class Paynl extends \Opencart\System\Engine\Controller
         if (!isset($this->session->data['payment_method'])) {
             $json['error']['warning'] = $this->language->get('session_error_payment_method');
         }
-        if (empty($this->request->post['order_id'])) {
+        if (empty($this->request->post['order_id']) || (int) $this->request->post['order_id'] !== (int) ($this->session->data['order_id'] ?? 0)) {
             $json['error']['warning'] = $this->language->get('session_error_order');
         }
 
         if (!$json) {
             try {
                 $this->load->model('checkout/order');
-                $order = $this->model_checkout_order->getOrder($this->request->post['order_id']);
+                $order = $this->model_checkout_order->getOrder($this->session->data['order_id']);
 
                 $options = [
                     'coupon' => $this->request->post['coupon'] ?? '',
