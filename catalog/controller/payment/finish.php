@@ -49,6 +49,7 @@ class Finish extends \Opencart\System\Engine\Controller
         }
 
         $this->load->language($this->route);
+        //$orderStatusId = (new PayStatus())->get($this->request->get['statusCode'] ?? '');
 
         $orderStatusId = null;
         if (!empty($this->request->get['statusCode'])) {
@@ -57,7 +58,7 @@ class Finish extends \Opencart\System\Engine\Controller
 
         if ($orderStatusId == PayStatus::PENDING || $orderStatusId == PayStatus::PAID || $orderStatusId == PayStatus::AUTHORIZE || $orderStatusId == PayStatus::VERIFY) {
             $this->response->redirect($this->url->link('checkout/success'));
-        } elseif ($this->request->get['statusCode'] == self::ORDERSTATUS_DENIED) {
+        } elseif (($this->request->get['statusCode'] ?? '') == self::ORDERSTATUS_DENIED) {
             $this->response->redirect($this->url->link('extension/paynl/checkout/denied'));
         } else {
             $this->response->redirect($this->url->link('checkout/checkout'));

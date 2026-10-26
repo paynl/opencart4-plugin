@@ -189,13 +189,13 @@ class PayTransaction
         $request->setDescription('Order ' . $orderInfo['order_id']);
         $request->setReference($orderInfo['order_id']);
 
-        $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish') . '&session_id=' . $this->openCart->session->getId());
+        $request->setReturnurl($this->openCart->url->link('extension/paynl/payment/finish.finish'));
         $request->setExchangeUrl($this->openCart->url->link('extension/paynl/payment/exchange.exchange'));
 
         $request->setAmount($this->openCart->currency->convert($orderInfo['total'], $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']));
         $request->setCurrency($this->openCart->session->data['currency']);
         $request->setPaymentMethodId($this->openCart->session->data['payment_method']['paymentOptionId']);
-        $request->setIssuerId($options['issuer']);
+        $request->setPaymentInputData(['issuerId' => $options['issuer']]);
         $request->setTestmode($this->payConfig->isTestMode());
 
         $customer = new \PayNL\Sdk\Model\Customer();
