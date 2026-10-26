@@ -48,6 +48,7 @@ class Paynl extends \Opencart\System\Engine\Controller
         $data['showCOC'] = $this->session->data['payment_method']['showCOC'] ?? 0;
         $data['showVAT'] = $this->session->data['payment_method']['showVAT'] ?? 0;
         $data['paymentMethodName'] = $this->session->data['payment_method']['name'] ?? 'Pay.';
+        $data['paymentMethodId'] =  $this->session->data['payment_method']['paymentOptionId'] ?? 0;;
         return $this->load->view($this->route, $data);
     }
 

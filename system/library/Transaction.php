@@ -195,7 +195,7 @@ class PayTransaction
         $request->setAmount($this->openCart->currency->convert($orderInfo['total'], $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']));
         $request->setCurrency($this->openCart->session->data['currency']);
         $request->setPaymentMethodId($this->openCart->session->data['payment_method']['paymentOptionId']);
-        $request->setIssuerId($options['issuer']);
+        $request->setPaymentInputData(['issuerId' => $options['issuer']]);
         $request->setTestmode($this->payConfig->isTestMode());
 
         $customer = new \PayNL\Sdk\Model\Customer();

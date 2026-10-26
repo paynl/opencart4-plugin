@@ -11,7 +11,7 @@
                 <select name="payIssuer" class="form-select {% if showIssuers == '2' %}required{% endif %}">
                     <option value="0"></option>
                     {% for issuer in issuers %}
-                        <option value="{{ issuer['id'] }}">{{ issuer['name'] }}</option>
+                        <option value="{{ paymentMethodId == 5358 ? issuer['issuerId'] : issuer['id'] }}">{{ issuer['name'] }}</option>
                     {% endfor %}
                 </select>
                 <div id="error-payDOB" class="invalid-feedback">Please choose your bank.</div>
