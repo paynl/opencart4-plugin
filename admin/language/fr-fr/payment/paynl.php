@@ -71,6 +71,7 @@ $_['text_dropdown'] = 'Dérouler';
 $_['text_optional'] = 'Optionnel';
 $_['text_required'] = 'Requis';
 // Error
+$_['error_service_config'] = 'Impossible de récupérer la configuration auprès de Pay. Vérifiez le code du jeton, le jeton API, le point de vente et les droits d’accès associés chez Pay. Les paramètres restent accessibles pour modifier ces informations.';
 $_['error_permission'] = 'Attention : Vous n\'êtes pas autorisé à modifier Pay. module de paiemente!';
 $_['error_tokencode'] = 'Le jeton d’API est requis.';
 $_['error_apitoken'] = 'API token est requis.';

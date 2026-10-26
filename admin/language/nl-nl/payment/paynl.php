@@ -71,6 +71,7 @@ $_['text_dropdown'] = 'Dropdown';
 $_['text_optional'] = 'Optioneel';
 $_['text_required'] = 'Vereist';
 // Error
+$_['error_service_config'] = 'De configuratie kon niet bij Pay. worden opgehaald. Controleer de tokencode, API-token, verkooplocatie en de bijbehorende toegangsrechten bij Pay. De instellingen blijven beschikbaar om deze gegevens aan te passen.';
 $_['error_permission'] = 'Waarschuwing: Je hebt geen toestemming om Pay. betalingsmodule te wijzigen!';
 $_['error_tokencode'] = 'Token code is vereist';
 $_['error_apitoken'] = 'API token is vereist';
