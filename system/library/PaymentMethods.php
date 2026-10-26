@@ -26,6 +26,7 @@ class PayPaymentMethods
     const METHOD_IN3BUSINESS = 3192; // phpcs:ignore
     const METHOD_KLARNA = 1717; // phpcs:ignore
     const METHOD_YEHHPAY = 1877; // phpcs:ignore
+    const METHOD_METJEBANK = 5358;
 
     public $showIssuers;
     public $showBusiness;
@@ -42,6 +43,7 @@ class PayPaymentMethods
 
         $this->showIssuers = [
             self::METHOD_INSTORE,
+            self::METHOD_METJEBANK,
         ];
 
         $this->showBusiness = [

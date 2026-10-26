@@ -1,34 +1,34 @@
 <div id="tab-pay-history" class="tab-pane">
-  <fieldset>
-    <legend>{{ text_pay_history }}</legend>
-    <div id="payHistory">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <td class="text-start">Date Added</td>
-            <td class="text-start">Comment</td>
-            <td class="text-start">Opencart Status</td>
-            <td class="text-start">Pay status</td>
-            <td class="text-start">Pay action</td>
-            <td class="text-start">Pay. Order id</td>
-          </tr>
-        </thead>
-        <tbody id="order-products">
-          {% for id, historyRow in pay_history %}  
-            <tr>
-              <td class="text-start">{{ historyRow.created_at|e }}</td>
-              <td class="text-start">{{ historyRow.message|e }}</td>
-              <td class="text-start">{{ historyRow.oc_status|e }}</td>              
-              <td class="text-start">{{ historyRow.pay_status|e }}</td>    
-              <td class="text-start">{{ historyRow.pay_action|e }}</td>    
-              <td class="text-start">{{ historyRow.transaction_id|e }}</td>            
-            </tr>
-          {% else %}
-            <div><em>No Pay. history found.</em></div>
-          {% endfor %}
-        </tbody>            
-      </table>
-      
-    </div>
-  </fieldset>  
+    <fieldset>
+        <legend>{{ text_pay_history }}</legend>
+        <div id="payHistory">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <td class="text-start">Date Added</td>
+                    <td class="text-start">Comment</td>
+                    <td class="text-start">Opencart Status</td>
+                    <td class="text-start">Pay status</td>
+                    <td class="text-start">Pay action</td>
+                    <td class="text-start">Pay. Order id</td>
+                </tr>
+                </thead>
+                <tbody id="order-products">
+                {% for id, historyRow in pay_history %}
+                    <tr>
+                        <td class="text-start">{{ historyRow.created_at|e }}</td>
+                        <td class="text-start">{{ historyRow.message|e }}</td>
+                        <td class="text-start">{{ historyRow.oc_status|e }}</td>
+                        <td class="text-start">{{ historyRow.pay_status|e }}</td>
+                        <td class="text-start">{{ historyRow.pay_action|e }}</td>
+                        <td class="text-start">{{ historyRow.transaction_id|e }}</td>
+                    </tr>
+                {% else %}
+                    <div><em>No Pay. history found.</em></div>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </fieldset>
 </div>

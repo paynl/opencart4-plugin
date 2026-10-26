@@ -131,7 +131,7 @@ class PayConfig
      */
     public function getCustomExchangeURL()
     {
-        return trim($this->openCart->config->get('payment_' . $this->code . '_custom_exchange_url'));
+        return trim((string) ($this->openCart->config->get('payment_' . $this->code . '_custom_exchange_url') ?? ''));
     }
 
     /**

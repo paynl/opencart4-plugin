@@ -35,13 +35,12 @@ class Paynl extends \Opencart\System\Engine\Model
      */
     public function getMethod(array $address): array
     {
-        $method_data = [
+        return [
             'code' => $this->code,
             'name' => 'Pay.',
             'title' => "Pay.",
             'sort_order' => $this->config->get('payment_' . $this->code . '_sort_order'),
         ];
-        return $method_data;
     }
 
 	/**
