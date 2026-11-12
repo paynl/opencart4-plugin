@@ -36,11 +36,12 @@ class Exchange extends \Opencart\System\Engine\Controller
      * @return void
      */
     public function exchange()
-    {        
+    {
+        $exchange = new PayExchange();
+
         try {
-            $exchange = new PayExchange();
             $transactionId = $exchange->getPayOrderId();
-            
+
             # Process the exchange request
             $payOrder = $exchange->process($this->payConfig->getConfig(true));
             if ($payOrder->isPaid() || $payOrder->isAuthorized() || $payOrder->isRefunded() || $payOrder->isCancelled() || $payOrder->isVoided()) {
@@ -48,7 +49,7 @@ class Exchange extends \Opencart\System\Engine\Controller
                     $processing = $this->payTransaction->checkProcessing($transactionId);
                     if (!empty($processing)) {
                         die('FALSE| Already Processing payment');
-                    }  
+                    }
                 }
                 $responseMessage = $this->payTransaction->processTransaction($exchange->getPayOrderId(), $payOrder, $exchange->getAction());
                 $this->helper->logDebug('Exchange: ' . $responseMessage, ['orderId' => $payOrder->getReference(), 'transactionId' => $exchange->getPayOrderId()]);
@@ -60,13 +61,14 @@ class Exchange extends \Opencart\System\Engine\Controller
                 $responseResult = true;
             } else {
                 $responseResult = true;
-                $responseMessage = 'ignoring ' . $payOrder->getStatusCode(); 
-            }        
-            
+                $responseMessage = 'ignoring ' . $payOrder->getStatusCode();
+            }
+
             $this->helper->logDebug('Exchange: ' . $responseMessage, ['orderId' => $payOrder->getReference(), 'transactionId' => $exchange->getPayOrderId()]);
         } catch (\Throwable $exception) {
+            $this->helper->logCritical('Exchange processing failed', ['error' => $exception->getMessage()]);
             $responseResult = false;
-            $responseMessage = $exception->getMessage();
+            $responseMessage = 'Unable to process payment notification';
         }
 
         $exchange->setResponse($responseResult, $responseMessage);
