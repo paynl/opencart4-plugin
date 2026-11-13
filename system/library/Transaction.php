@@ -293,16 +293,16 @@ class PayTransaction
 
         foreach ($products as $key => $product) {
             $productPrice = $product['price'];
-            $priceWithoutTax = $this->openCart->currency->convert($productPrice, $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']); 
-            
+            $priceWithoutTax = $this->openCart->currency->convert($productPrice, $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']);
+
             $taxes = $this->openCart->tax->getRates($product['price'], $product['tax_class_id']);
             foreach ($taxes as $taxInfo) {
                 $productPrice += $taxInfo['amount'];
             }
-            $priceWithTax = $this->openCart->currency->convert($productPrice, $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']);   
-            $tax = $priceWithTax - $priceWithoutTax;       
-            $taxPercentage = ($tax / $priceWithoutTax) * 100;            
-          
+            $priceWithTax = $this->openCart->currency->convert($productPrice, $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']);
+            $tax = $priceWithTax - $priceWithoutTax;
+            $taxPercentage = ($tax / $priceWithoutTax) * 100;
+
             $totalPrice += $priceWithTax;
             $payProducts->addProduct(new Product($product['product_id'], $product['name'], $priceWithTax, $this->openCart->session->data['currency'], Product::TYPE_ARTICLE, $product['quantity'], 'N', $taxPercentage)); // phpcs:ignore
 
@@ -312,15 +312,15 @@ class PayTransaction
 			$shipping = $order_info['shipping_method'];
 
             $shippingPrice = $shipping['cost'];
-            $priceWithoutTax = $this->openCart->currency->convert($shippingPrice, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']); 
-            
+            $priceWithoutTax = $this->openCart->currency->convert($shippingPrice, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']);
+
             $taxes = $this->openCart->tax->getRates($shipping['cost'], $shipping['tax_class_id']);
             foreach ($taxes as $taxInfo) {
                 $shippingPrice += $taxInfo['amount'];
             }
-            $priceWithTax = $this->openCart->currency->convert($shippingPrice, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']);   
-            $tax = $priceWithTax - $priceWithoutTax;       
-            $taxPercentage = ($tax / $priceWithoutTax) * 100;    
+            $priceWithTax = $this->openCart->currency->convert($shippingPrice, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']);
+            $tax = $priceWithTax - $priceWithoutTax;
+            $taxPercentage = ($tax / $priceWithoutTax) * 100;
 
             $totalPrice += $priceWithTax;
             $payProducts->addProduct(new Product('Shipping', $shipping['name'], $priceWithTax, $this->openCart->session->data['currency'], Product::TYPE_SHIPPING, 1, 'N', $taxPercentage)); // phpcs:ignore
@@ -339,7 +339,7 @@ class PayTransaction
                 $discount += $order_info['shipping_method']['cost'];
             }
 
-            $discount = $this->openCart->currency->convert($discount, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']); 
+            $discount = $this->openCart->currency->convert($discount, $this->openCart->config->get('config_currency'),$this->openCart->session->data['currency']);
 
             $payProducts->addProduct(new Product($options['coupon'], $coupon_info['name'], -$discount, $this->openCart->session->data['currency'], Product::TYPE_DISCOUNT, 1, 'N'));
 		}
@@ -348,7 +348,7 @@ class PayTransaction
 			$this->openCart->load->model('checkout/voucher');
             $voucher_info = $this->openCart->model_checkout_voucher->getVoucher($options['voucher']);
 
-            $voucher = $this->openCart->currency->convert($voucher_info['amount'], $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']); 
+            $voucher = $this->openCart->currency->convert($voucher_info['amount'], $this->openCart->config->get('config_currency'), $this->openCart->session->data['currency']);
 
             $payProducts->addProduct(new Product('voucher', $voucher_info['code'], -$voucher, $this->openCart->session->data['currency'], Product::TYPE_DISCOUNT, 1, 'N'));
 		}
@@ -364,6 +364,9 @@ class PayTransaction
      */
     public function addTransaction($order_id, $transaction_id, $amount)
     {
+        $order_id = (int) $order_id;
+        $transaction_id = $this->openCart->db->escape((string) $transaction_id);
+        $amount = (float) $amount;
         $query = "INSERT INTO `" . DB_PREFIX . "pay_transactions`(`order_id`, `transaction_id`, `amount`) VALUES ('" . $order_id . "','" . $transaction_id . "'," . $amount . ")  ON DUPLICATE KEY UPDATE transaction_id='" . $transaction_id . "', amount=" . $amount . ";";
         $this->openCart->db->query($query);
     }
@@ -374,6 +377,7 @@ class PayTransaction
      */
     public function getTransaction($order_id)
     {
+        $order_id = (int) $order_id;
         $query = "SELECT * FROM `" . DB_PREFIX . "pay_transactions` WHERE `order_id` = '" . $order_id . "';";
         $dbTransaction = $this->openCart->db->query($query);
 
@@ -398,6 +402,12 @@ class PayTransaction
      */
     public function addHistory($order_id, $transaction_id, $message, $ocStatus, $payStatus, $action)
     {
+        $order_id = (int) $order_id;
+        $transaction_id = $this->openCart->db->escape((string) $transaction_id);
+        $message = $this->openCart->db->escape((string) $message);
+        $ocStatus = $this->openCart->db->escape((string) $ocStatus);
+        $payStatus = $this->openCart->db->escape((string) $payStatus);
+        $action = $this->openCart->db->escape((string) $action);
         $query = "INSERT INTO `" . DB_PREFIX . "pay_history`(`order_id`, `transaction_id`, `message`, `oc_status`, `pay_status`, `pay_action`) VALUES ('" . $order_id . "','" . $transaction_id . "','" . $message . "','" . $ocStatus . "','" . $payStatus . "','" . $action . "');";
         $this->openCart->db->query($query);
     }
@@ -407,6 +417,7 @@ class PayTransaction
      */
     public function getHistory($order_id)
     {
+        $order_id = (int) $order_id;
         $query = "SELECT * FROM `" . DB_PREFIX . "pay_history` WHERE `order_id` = '" . $order_id . "'  ORDER BY created_at DESC;";
         $dbTransaction = $this->openCart->db->query($query);
         if ($dbTransaction->num_rows) {
@@ -446,10 +457,12 @@ class PayTransaction
         $request->start();
     }
 
-    /**
-     * @param string $order_id
-     * @param string $amount
-     */
+	/**
+	 * @param $transactionId
+	 * @param $amount
+	 * @return void
+	 * @throws PayException
+	 */
     public function void($transactionId, $amount)
     {
         $request = new OrderVoidRequest($transactionId);
@@ -466,6 +479,7 @@ class PayTransaction
     {
         $result = null;
         try {
+            $payOrderId = $this->openCart->db->escape((string) $payOrderId);
             $query = "SELECT * FROM `" . DB_PREFIX . "pay_processing` WHERE `payOrderId` = '" . $payOrderId . "' AND created_at > date_sub('" . date('Y-m-d H:i:s') . "', interval 1 minute) ORDER BY created_at DESC;";
             $dbTransaction = $this->openCart->db->query($query);
             if ($dbTransaction && !empty($dbTransaction->num_rows) && $dbTransaction->num_rows) {
@@ -487,6 +501,7 @@ class PayTransaction
      */
     public function removeProcessing($payOrderId)
     {
+        $payOrderId = $this->openCart->db->escape((string) $payOrderId);
         $query = "DELETE FROM `" . DB_PREFIX . "pay_processing` WHERE `payOrderId` = '" . $payOrderId . "';";
         $this->openCart->db->query($query);
     }
